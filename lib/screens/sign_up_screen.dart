@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:e_govermenet/components/date_input_field.dart';
@@ -8,6 +9,9 @@ import 'package:e_govermenet/components/martial_status_dropdown.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -17,20 +21,28 @@ class SignUpScreen extends StatefulWidget {
 }
 
 class _SignUpScreenState extends State<SignUpScreen> {
-  final TextEditingController fullname = TextEditingController();
-  final TextEditingController email = TextEditingController();
-  final TextEditingController phone = TextEditingController();
-  final TextEditingController nationalID = TextEditingController();
+  // Text controllers
+  final TextEditingController _fullname = TextEditingController();
+  final TextEditingController _email = TextEditingController();
+  final TextEditingController _phone = TextEditingController();
+  final TextEditingController _nationalID = TextEditingController();
+  final TextEditingController _username = TextEditingController();
+  final TextEditingController _password = TextEditingController();
+  final TextEditingController _confirmPassword = TextEditingController();
 
+  bool _shownpass = false;
+  bool _shownConfirmPass = false;
+  // Form values
   String _gender = 'Male';
   String _maritalStatus = 'Single';
-
-  bool shownpass = false;
-  bool shownConfirmPass = false;
-
-  File? _nationalIDImage;
-
   DateTime? _dob;
+  File? _frontNationalID;
+  File? _backNationalID;
+
+  // Form validation
+  final _formKey = GlobalKey<FormState>();
+  bool _isLoading = false;
+
   // Here we have created list of steps that
   // are required to complete the form
   List<Step> stepList() => [
@@ -42,31 +54,55 @@ class _SignUpScreenState extends State<SignUpScreen> {
       content: Column(
         children: [
           InputFields(
-            input_controller: fullname,
+            input_controller: _fullname,
             inputlabel: Text('Enter Fullname'),
             prefixIcon: Icon(Icons.person),
             suffixIcon: null,
             isPassword: false,
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return 'Password is required';
+              } else if (value.length < 6) {
+                return 'Password must be at least 6 characters';
+              }
+              return null;
+            },
           ),
 
           SizedBox(height: 15),
 
           InputFields(
-            input_controller: email,
+            input_controller: _email,
             inputlabel: Text('Enter Email'),
             prefixIcon: Icon(Icons.mail),
             suffixIcon: null,
             isPassword: false,
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return 'Password is required';
+              } else if (value.length < 6) {
+                return 'Password must be at least 6 characters';
+              }
+              return null;
+            },
           ),
 
           SizedBox(height: 15),
 
           InputFields(
-            input_controller: phone,
+            input_controller: _phone,
             inputlabel: Text('Enter Phone Number'),
             prefixIcon: Icon(Icons.phone),
             suffixIcon: null,
             isPassword: false,
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return 'Password is required';
+              } else if (value.length < 6) {
+                return 'Password must be at least 6 characters';
+              }
+              return null;
+            },
           ),
 
           SizedBox(height: 15),
@@ -102,7 +138,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
           SizedBox(height: 20),
 
           InputFields(
-            input_controller: nationalID,
+            input_controller: _nationalID,
             inputlabel: Text("Enter National Id Number"),
             prefixIcon: null,
             isPassword: false,
@@ -110,6 +146,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
               onPressed: () {},
               icon: Icon(FontAwesomeIcons.idCard),
             ),
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return 'National ID is required';
+              }
+              return null;
+            },
           ),
 
           const SizedBox(height: 20),
@@ -118,14 +160,14 @@ class _SignUpScreenState extends State<SignUpScreen> {
             buttonText: 'Upload Front Side',
             height: 250,
             icon: Icons.credit_card,
-            onImageSelected: (file) => setState(() => _nationalIDImage = file),
+            onImageSelected: (file) => setState(() => _frontNationalID = file),
           ),
           const SizedBox(height: 20),
           NationalIDUploader(
             buttonText: 'Upload Back Side',
             height: 250,
             icon: Icons.credit_card,
-            onImageSelected: (file) => setState(() => _nationalIDImage = file),
+            onImageSelected: (file) => setState(() => _backNationalID = file),
           ),
         ],
       ),
@@ -139,45 +181,69 @@ class _SignUpScreenState extends State<SignUpScreen> {
       content: Column(
         children: [
           InputFields(
-            input_controller: fullname,
+            input_controller: _username,
             inputlabel: Text('Enter Username'),
             prefixIcon: Icon(Icons.person),
             suffixIcon: null,
             isPassword: false,
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return 'Username is required';
+              }
+              return null;
+            },
           ),
 
           SizedBox(height: 15),
 
           InputFields(
-            input_controller: email,
+            input_controller: _password,
             inputlabel: Text('Enter Passoword'),
             prefixIcon: null,
             suffixIcon: IconButton(
               onPressed: () {
                 setState(() {
-                  shownpass = !shownpass;
+                  _shownpass = !_shownpass;
                 });
               },
               icon: Icon(FontAwesomeIcons.lock),
             ),
-            isPassword: shownpass,
+            isPassword: _shownpass,
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return 'Password is required';
+              } else if (value.length < 6) {
+                return 'Password must be at least 6 characters';
+              }
+              return null;
+            },
           ),
 
           SizedBox(height: 15),
 
           InputFields(
-            input_controller: phone,
+            input_controller: _confirmPassword,
             inputlabel: Text('Enter Confirm Password'),
             prefixIcon: null,
             suffixIcon: IconButton(
               onPressed: () {
                 setState(() {
-                  shownConfirmPass = !shownConfirmPass;
+                  _shownConfirmPass = !_shownConfirmPass;
                 });
               },
               icon: Icon(FontAwesomeIcons.lock),
             ),
-            isPassword: shownConfirmPass,
+            isPassword: _shownConfirmPass,
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return 'Password is required';
+              } else if (value.length < 6) {
+                return 'Password must be at least 6 characters';
+              } else if (value != _password.text) {
+                return 'Password Should Match !';
+              }
+              return null;
+            },
           ),
         ],
       ),
@@ -186,40 +252,223 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
   var _ActiveCurrentStep = 0;
 
+  // void _submitForm() async {
+  //   if (_formKey.currentState!.validate()) {
+  //     // Additional validation for non-form fields
+  //     if (_dob == null) {
+  //       _showError('Date of Birth is required');
+  //       return;
+  //     }
+  //     if (_frontNationalID == null || _backNationalID == null) {
+  //       _showError('Both ID card sides are required');
+  //       return;
+  //     }
+
+  //     setState(() => _isLoading = true);
+
+  //     try {
+  //       var request = http.MultipartRequest(
+  //         'POST',
+  //         // Uri.parse('https://your-backend-url.com/signup'),
+  //         Uri.parse('http://192.168.100.10/egov_back/signup'),
+  //       );
+
+  //       // Add text fields
+  //       request.fields['fullname'] = _fullname.text;
+  //       request.fields['email'] = _email.text;
+  //       request.fields['phone'] = _phone.text;
+  //       request.fields['gender'] = _gender;
+  //       request.fields['marital_status'] = _maritalStatus;
+  //       request.fields['dob'] = _dob!.toIso8601String();
+  //       request.fields['national_id'] = _nationalID.text;
+  //       request.fields['username'] = _username.text;
+  //       request.fields['password'] = _password.text;
+
+  //       // Add images
+  //       if (_frontNationalID != null) {
+  //         request.files.add(
+  //           await http.MultipartFile.fromPath(
+  //             'front_national_id',
+  //             _frontNationalID!.path,
+  //             contentType: MediaType('image', 'jpeg'),
+  //           ),
+  //         );
+  //       }
+  //       if (_backNationalID != null) {
+  //         request.files.add(
+  //           await http.MultipartFile.fromPath(
+  //             'back_national_id',
+  //             _backNationalID!.path,
+  //             contentType: MediaType('image', 'jpeg'),
+  //           ),
+  //         );
+  //       }
+
+  //       // Send request
+  //       var response = await request.send();
+  //       var responseBody = await response.stream.bytesToString();
+
+  //       if (mounted && response.statusCode == 201) {
+  //         final data = jsonDecode(responseBody);
+  //         final prefs = await SharedPreferences.getInstance();
+
+  //         await prefs.setInt('user_id', data['user']['id']);
+  //         await prefs.setString('email', data['user']['email']);
+  //         if (mounted) {
+  //           Navigator.pushReplacementNamed(context, 'home_screen');
+  //         }
+  //       } else {
+  //         throw Exception('Server error: ${response.statusCode}');
+  //       }
+  //     } catch (e) {
+  //       _showError('Submission failed: ${e.toString()}');
+  //     } finally {
+  //       setState(() => _isLoading = false);
+  //     }
+  //   }
+  // }
+
+  void _submitForm() async {
+    if (_formKey.currentState!.validate()) {
+      // Validate all required fields
+      if (_fullname.text.isEmpty ||
+          _email.text.isEmpty ||
+          _username.text.isEmpty ||
+          _password.text.isEmpty ||
+          _confirmPassword.text.isEmpty ||
+          _frontNationalID == null ||
+          _backNationalID == null) {
+        _showError('Please fill all required fields');
+        return;
+      }
+
+      // Validate password match
+      if (_password.text != _confirmPassword.text) {
+        _showError('Passwords do not match');
+        return;
+      }
+
+      if (kDebugMode) {
+        print("VAR VALUES : ${_fullname.text}, ${_email.text} , ${_frontNationalID},${_backNationalID}, ${_password.text} , ${_confirmPassword.text} , $_dob , ${_nationalID.text}");
+      }
+      if (_dob == null) {
+        _showError('Date of Birth is required');
+        return;
+      }
+
+      // Validate images
+
+      if (_frontNationalID == null || _backNationalID == null) {
+        _showError('Both ID card sides are required');
+        return;
+      }
+
+      try {
+        var request = http.MultipartRequest(
+          'POST',
+          Uri.parse('http://192.168.100.10/egov_back/signup'),
+        );
+
+        // Add text fields
+        request.fields['fullname'] = _fullname.text;
+        request.fields['email'] = _email.text;
+        request.fields['phone'] = _phone.text;
+        request.fields['gender'] = _gender;
+        request.fields['martial_status'] = _maritalStatus;
+        request.fields['dob'] = _dob!.toIso8601String();
+        request.fields['national_id'] = _nationalID.text;
+        request.fields['username'] = _username.text; // Add username
+        request.fields['password'] = _password.text; // Add password
+
+        // Add images
+        if (_frontNationalID != null) {
+          request.files.add(
+            await http.MultipartFile.fromPath(
+              'front_national_id',
+              _frontNationalID!.path,
+            ),
+          );
+        }
+        if (_backNationalID != null) {
+          request.files.add(
+            await http.MultipartFile.fromPath(
+              'back_national_id',
+              _backNationalID!.path,
+            ),
+          );
+        }
+
+        // Send request
+        var response = await request.send();
+        var responseBody = await response.stream.bytesToString();
+
+        if (response.statusCode == 201) {
+          final data = jsonDecode(responseBody);
+          final prefs = await SharedPreferences.getInstance();
+
+          // Save user data
+          await prefs.setInt('user_id', data['user']['id']);
+          await prefs.setString('email', data['user']['email']);
+
+          if (mounted) {
+            Navigator.pushReplacementNamed(context, 'home_screen');
+          }
+        } else {
+          if(kDebugMode){
+            print('Server response: $responseBody');
+          }
+          throw Exception('Server error: ${response.statusCode}');
+          
+        }
+      } catch (e) {
+        _showError('Submission failed: ${e.toString()}');
+      }
+    }
+  }
+
+  void _showError(String message) {
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
-        child: Stepper(
-          elevation: 0,
+        child: Form(
+          key: _formKey,
+          child: Stepper(
+            elevation: 0,
 
-          type: StepperType.horizontal,
-          currentStep: _ActiveCurrentStep,
-          onStepContinue: () {
-            if (_ActiveCurrentStep < (stepList().length - 1)) {
+            type: StepperType.horizontal,
+            currentStep: _ActiveCurrentStep,
+            onStepContinue: () {
+              if (_ActiveCurrentStep != stepList().length - 1) {
+                _formKey.currentState!.validate();
+                setState(() => _ActiveCurrentStep += 1);
+              } else {
+                _submitForm();
+              }
+            },
+
+            onStepCancel: () {
+              if (_ActiveCurrentStep == 0) {
+                return;
+              }
+
               setState(() {
-                _ActiveCurrentStep += 1;
+                _ActiveCurrentStep -= 1;
               });
-            } else {
-              Navigator.pushReplacementNamed(context, 'home_screen');
-            }
-          },
-          onStepCancel: () {
-            if (_ActiveCurrentStep == 0) {
-              return;
-            }
+            },
 
-            setState(() {
-              _ActiveCurrentStep -= 1;
-            });
-          },
-
-          onStepTapped: (int index) {
-            setState(() {
-              _ActiveCurrentStep = index;
-            });
-          },
-          steps: stepList(),
+            onStepTapped: (int index) {
+              setState(() {
+                _ActiveCurrentStep = index;
+              });
+            },
+            steps: stepList(),
+          ),
         ),
       ),
     );

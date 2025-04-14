@@ -1,4 +1,5 @@
 import 'package:e_govermenet/screens/home_screen.dart';
+import 'package:e_govermenet/screens/login_screen.dart';
 import 'package:e_govermenet/screens/sign_up_screen.dart';
 import 'package:flutter/material.dart';
 
@@ -21,6 +22,7 @@ class _MyAppState extends State<MyApp> {
       routes: {
         'sign_up': (context) => SignUpScreen(),
         'home_screen': (context) => HomeScreen(),
+        'Login': (context) => LoginScreen(),
       },
     );
   }
