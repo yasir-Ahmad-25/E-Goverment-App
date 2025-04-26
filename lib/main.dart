@@ -18,7 +18,7 @@ class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: SignUpScreen(),
+      home: LoginScreen(),
       routes: {
         'sign_up': (context) => SignUpScreen(),
         'home_screen': (context) => HomeScreen(),

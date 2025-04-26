@@ -20,7 +20,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
     try {
       final response = await http.post(
-        Uri.parse('https://your-backend.com/auth/login'),
+        Uri.parse('http://192.168.100.10/egov_back/login'),
         body: {'email': _email.text, 'password': _password.text},
       );
 
@@ -28,10 +28,21 @@ class _LoginScreenState extends State<LoginScreen> {
         final data = jsonDecode(response.body);
         final prefs = await SharedPreferences.getInstance();
 
-        // Save session data
-        await prefs.setInt('user_id', data['user']['id']);
-        await prefs.setString('email', data['user']['email']);
+        // // Save session data
+        // await prefs.setInt('user_id', data['citizen']['citizen_id']);
+        // await prefs.setString('email', data['citizen']['email']);
 
+            // Get citizen data (single object)
+            final citizen = data['citizen'];
+            final citizenId = citizen['citizen_id'];
+
+            // Save to SharedPreferences
+            await prefs.setInt('user_id', citizenId is String 
+                ? int.parse(citizenId) 
+                : citizenId
+            );
+            await prefs.setString('email', citizen['email']);
+            
         if (mounted) {
           Navigator.pushReplacementNamed(context, 'home_screen');
         }

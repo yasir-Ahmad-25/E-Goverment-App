@@ -348,9 +348,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
         return;
       }
 
-      if (kDebugMode) {
-        print("VAR VALUES : ${_fullname.text}, ${_email.text} , ${_frontNationalID},${_backNationalID}, ${_password.text} , ${_confirmPassword.text} , $_dob , ${_nationalID.text}");
-      }
       if (_dob == null) {
         _showError('Date of Birth is required');
         return;
@@ -374,11 +371,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
         request.fields['email'] = _email.text;
         request.fields['phone'] = _phone.text;
         request.fields['gender'] = _gender;
-        request.fields['martial_status'] = _maritalStatus;
-        request.fields['dob'] = _dob!.toIso8601String();
+        request.fields['martial_status'] = _maritalStatus; // Add null check
+        request.fields['birthdate'] = _dob!.toIso8601String().substring(0, 10);
         request.fields['national_id'] = _nationalID.text;
-        request.fields['username'] = _username.text; // Add username
-        request.fields['password'] = _password.text; // Add password
+        request.fields['username'] = _username.text; 
+        request.fields['password'] = _password.text;
+
+       
 
         // Add images
         if (_frontNationalID != null) {
@@ -388,6 +387,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
               _frontNationalID!.path,
             ),
           );
+
+        request.fields['front_National_id'] = _frontNationalID!.path;
         }
         if (_backNationalID != null) {
           request.files.add(
@@ -396,29 +397,43 @@ class _SignUpScreenState extends State<SignUpScreen> {
               _backNationalID!.path,
             ),
           );
+          request.fields['back_National_id'] = _backNationalID!.path;
         }
 
         // Send request
         var response = await request.send();
         var responseBody = await response.stream.bytesToString();
 
-        if (response.statusCode == 201) {
-          final data = jsonDecode(responseBody);
-          final prefs = await SharedPreferences.getInstance();
+        if (response.statusCode == 200) {
+            final data = jsonDecode(responseBody);
+            final prefs = await SharedPreferences.getInstance();
 
-          // Save user data
-          await prefs.setInt('user_id', data['user']['id']);
-          await prefs.setString('email', data['user']['email']);
+            // Check for error response
+            if (data['status'] != 'success') {
+                throw Exception(data['message'] ?? 'Unknown error');
+            }
 
-          if (mounted) {
-            Navigator.pushReplacementNamed(context, 'home_screen');
-          }
-        } else {
+            // Get citizen data (single object)
+            final citizen = data['citizen'];
+            final citizenId = citizen['citizen_id'];
+
+            // Save to SharedPreferences
+            await prefs.setInt('user_id', citizenId is String 
+                ? int.parse(citizenId) 
+                : citizenId
+            );
+            await prefs.setString('email', citizen['email']);
+            
+            // Navigate
+            if (mounted) {
+                Navigator.pushReplacementNamed(context, 'home_screen');
+            }
+        }else {
           if(kDebugMode){
             print('Server response: $responseBody');
           }
           throw Exception('Server error: ${response.statusCode}');
-          
+
         }
       } catch (e) {
         _showError('Submission failed: ${e.toString()}');
