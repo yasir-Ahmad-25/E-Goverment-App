@@ -30,7 +30,7 @@ class _MyAppState extends State<MyApp> {
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(child: CircularProgressIndicator.adaptive());
-          } 
+          }
           return snapshot.data == true ? HomeScreen() : LoginScreen();
         },
       ),

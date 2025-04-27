@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:e_govermenet/screens/service_detailed_page.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -14,11 +15,38 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  List<GovService> _services = [];
   String? _fullName;
   String? _gender;
   String? _userStatus;
   bool _isActive = false;
   bool _isLoading = true;
+
+  // Track selected index
+  int _selectedIndex = 0;
+
+  // Update index when an item is tapped
+  void _onNavBarItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+
+    // Navigate to different pages based on the tapped index
+    switch (index) {
+      case 0:
+        // Navigate to Home
+        break;
+      case 1:
+        // Navigate to Search
+        break;
+      case 2:
+        // Navigate to Cart
+        break;
+      case 3:
+        // Navigate to Profile
+        break;
+    }
+  }
 
   // Logout
   Future<void> _logout() async {
@@ -46,6 +74,7 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     _loadCitizenData();
+    _loadServices();
   }
 
   Future<void> _loadCitizenData() async {
@@ -93,6 +122,34 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  Future<void> _loadServices() async {
+    try {
+      // Fetch services data
+      final response = await http.get(
+        Uri.parse('http://192.168.100.10/egov_back/services/'),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['status'] == 'success') {
+          setState(() {
+            _services = List<GovService>.from(
+              data['services'].map((item) => GovService.fromJson(item)),
+            );
+          });
+        } else {
+          throw Exception(data['message']);
+        }
+      } else {
+        throw Exception("Failed To Fetch Services: ${response.statusCode}");
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Error: ${e.toString()}")));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -111,8 +168,48 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       body:
           _isActive
-              ? Center(child: Text("Welcome Home Citizen 🔥"))
+              ? HomeContent(service: _services)
               : PendingUser(gender: _gender.toString(), function: _logout),
+      floatingActionButton: FloatingActionButton(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(100.0),
+        ),
+        backgroundColor: Colors.white,
+        elevation: 4, // visible shadow
+        onPressed: () {
+          // Your FAB action
+        },
+        child: const Icon(Bootstrap.wind, color: Colors.blue),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+
+      bottomNavigationBar: BottomBar(
+        selectedIndex: _selectedIndex,
+        method: _onNavBarItemTapped,
+      ),
+    );
+  }
+}
+
+class HomeContent extends StatelessWidget {
+  final List<GovService> service;
+  const HomeContent({super.key, required this.service});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Banner(),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12.0),
+          child: Text(
+            "Services",
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          ),
+        ),
+        Services(services: service),
+      ],
     );
   }
 }
@@ -202,5 +299,272 @@ class PendingUser extends StatelessWidget {
         ), //SizedBox
       ), //Card
     ); //Center
+  }
+}
+
+class Banner extends StatelessWidget {
+  const Banner({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 12.0),
+      child: Container(
+        width: double.infinity,
+        height: 120,
+        decoration: BoxDecoration(
+          color: Colors.grey,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        // child: Image.asset(""),
+      ),
+    );
+  }
+}
+
+class Services extends StatelessWidget {
+  final List<GovService> services;
+  const Services({super.key, required this.services});
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: GridView.builder(
+          itemCount: services.length,
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 4,
+            mainAxisSpacing: 20,
+            crossAxisSpacing: 10,
+          ),
+          itemBuilder: (context, index) {
+            return ServiceIcon(service: services[index]);
+          },
+        ),
+      ),
+    );
+  }
+}
+
+class ServiceIcon extends StatelessWidget {
+  final GovService service;
+
+  const ServiceIcon({super.key, required this.service});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => ServiceDetailPage(service: service),
+          ),
+        );
+      },
+      child: Column(
+        children: [
+          Container(
+            width: 50,
+            height: 50,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(50),
+              color: Colors.amber,
+            ),
+            child: Icon(Icons.miscellaneous_services),
+          ),
+          SizedBox(height: 4),
+          Text(
+            service.name,
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 12),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+
+// NAVIGATION BAR
+
+class BottomBar extends StatelessWidget {
+  final int? selectedIndex;
+  final Function(int)? method;
+
+  const BottomBar({super.key, this.selectedIndex, this.method});
+
+  @override
+  Widget build(BuildContext context) {
+    double height = 56;
+
+    const primaryColor = Colors.blue;
+    const backgroundColor = Colors.white;
+
+    return BottomAppBar(
+      color: backgroundColor,
+      elevation: 8, // gives it a little shadow
+      child: SizedBox(
+        height: height,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            NavBarIcon(
+              text: "Home",
+              icon: Bootstrap.house,
+              selected: selectedIndex == 0,
+              onPressed: () => method?.call(0),
+              defaultColor: Colors.grey,
+              selectedColor: primaryColor,
+            ),
+            NavBarIcon(
+              text: "Search",
+              icon: Bootstrap.search,
+              selected: selectedIndex == 1,
+              onPressed: () => method?.call(1),
+              defaultColor: Colors.grey,
+              selectedColor: primaryColor,
+            ),
+            const SizedBox(width: 56), // space for FAB
+            NavBarIcon(
+              text: "Cart",
+              icon: Icons.local_grocery_store_outlined,
+              selected: selectedIndex == 2,
+              onPressed: () => method?.call(2),
+              defaultColor: Colors.grey,
+              selectedColor: primaryColor,
+            ),
+            NavBarIcon(
+              text: "Calendar",
+              icon: Bootstrap.person,
+              selected: selectedIndex == 3,
+              onPressed: () => method?.call(3),
+              defaultColor: Colors.grey,
+              selectedColor: primaryColor,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class BottomNavCurvePainter extends CustomPainter {
+  BottomNavCurvePainter({
+    this.backgroundColor = Colors.black,
+    this.insetRadius = 38,
+  });
+
+  Color backgroundColor;
+  double insetRadius;
+  @override
+  void paint(Canvas canvas, Size size) {
+    Paint paint =
+        Paint()
+          ..color = backgroundColor
+          ..style = PaintingStyle.fill;
+    Path path = Path()..moveTo(0, 12);
+
+    double insetCurveBeginnningX = size.width / 2 - insetRadius;
+    double insetCurveEndX = size.width / 2 + insetRadius;
+    double transitionToInsetCurveWidth = size.width * .05;
+    path.quadraticBezierTo(
+      size.width * 0.20,
+      0,
+      insetCurveBeginnningX - transitionToInsetCurveWidth,
+      0,
+    );
+    path.quadraticBezierTo(
+      insetCurveBeginnningX,
+      0,
+      insetCurveBeginnningX,
+      insetRadius / 2,
+    );
+
+    path.arcToPoint(
+      Offset(insetCurveEndX, insetRadius / 2),
+      radius: const Radius.circular(10.0),
+      clockwise: false,
+    );
+
+    path.quadraticBezierTo(
+      insetCurveEndX,
+      0,
+      insetCurveEndX + transitionToInsetCurveWidth,
+      0,
+    );
+    path.quadraticBezierTo(size.width * 0.80, 0, size.width, 12);
+    path.lineTo(size.width, size.height + 56);
+    path.lineTo(
+      0,
+      size.height + 56,
+    ); //+56 here extends the navbar below app bar to include extra space on some screens (iphone 11)
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(CustomPainter oldDelegate) {
+    return false;
+  }
+}
+
+class NavBarIcon extends StatelessWidget {
+  const NavBarIcon({
+    super.key,
+    required this.text,
+    required this.icon,
+    required this.selected,
+    required this.onPressed,
+    this.selectedColor = Colors.blue,
+    this.defaultColor = Colors.grey,
+  });
+
+  final String text;
+  final IconData icon;
+  final bool selected;
+  final Function() onPressed;
+  final Color defaultColor;
+  final Color selectedColor;
+
+  @override
+  Widget build(BuildContext context) {
+    return IconButton(
+      onPressed: onPressed,
+      splashColor: Colors.transparent,
+      highlightColor: Colors.transparent,
+      icon: Icon(
+        icon,
+        size: 25,
+        color: selected ? selectedColor : defaultColor,
+      ),
+    );
+  }
+}
+
+// Model
+class GovService {
+  final int serId;
+  final String name;
+  final String descriptions;
+  final double price;
+  final String status;
+
+  GovService({
+    required this.serId,
+    required this.name,
+    required this.descriptions,
+    required this.price,
+    required this.status,
+  });
+
+  factory GovService.fromJson(Map<String, dynamic> json) {
+    return GovService(
+      serId: int.parse(json['ser_id']),
+      name: json['name'],
+      descriptions: json['descriptions'],
+      price: double.parse(json['price']),
+      status: json['status'],
+    );
   }
 }
