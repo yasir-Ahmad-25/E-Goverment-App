@@ -1,3 +1,4 @@
+import 'package:e_govermenet/components/Forms/national_id_card_form.dart';
 import 'package:e_govermenet/screens/home_screen.dart';
 import 'package:e_govermenet/screens/login_screen.dart';
 import 'package:e_govermenet/screens/sign_up_screen.dart';
@@ -25,6 +26,7 @@ class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      darkTheme: ThemeData.dark(),
       home: FutureBuilder(
         future: _checkLoginStatus(),
         builder: (context, snapshot) {
@@ -38,8 +40,9 @@ class _MyAppState extends State<MyApp> {
         'sign_up': (context) => SignUpScreen(),
         'home_screen': (context) => HomeScreen(),
         'Login': (context) => LoginScreen(),
+        // Forms
+        'national_id_card_form': (context) => NationalIdCardForm(),
       },
     );
   }
 }
- 

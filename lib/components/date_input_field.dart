@@ -54,7 +54,7 @@ class _DateInputFieldState extends State<DateInputField> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(widget.labelText),
+        // Text(widget.labelText),
         const SizedBox(height: 8),
         GestureDetector(
           onTap: () => _selectDate(context),
@@ -70,7 +70,7 @@ class _DateInputFieldState extends State<DateInputField> {
                 Text(
                   _selectedDate != null
                       ? _dateFormatter.format(_selectedDate!)
-                      : 'Select Date',
+                      : 'Select Birth Date',
                   style: TextStyle(
                     color: _selectedDate != null ? Colors.black : Colors.grey,
                   ),

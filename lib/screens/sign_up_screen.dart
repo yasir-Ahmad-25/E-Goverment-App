@@ -41,7 +41,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
   // Form validation
   final _formKey = GlobalKey<FormState>();
-  bool _isLoading = false;
+  final bool _isLoading = false;
 
   // Here we have created list of steps that
   // are required to complete the form
@@ -161,6 +161,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
             height: 250,
             icon: Icons.credit_card,
             onImageSelected: (file) => setState(() => _frontNationalID = file),
+            width: double.infinity,
           ),
           const SizedBox(height: 20),
           NationalIDUploader(
@@ -168,6 +169,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
             height: 250,
             icon: Icons.credit_card,
             onImageSelected: (file) => setState(() => _backNationalID = file),
+            width: double.infinity,
           ),
         ],
       ),
@@ -374,10 +376,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
         request.fields['martial_status'] = _maritalStatus; // Add null check
         request.fields['birthdate'] = _dob!.toIso8601String().substring(0, 10);
         request.fields['national_id'] = _nationalID.text;
-        request.fields['username'] = _username.text; 
+        request.fields['username'] = _username.text;
         request.fields['password'] = _password.text;
-
-       
 
         // Add images
         if (_frontNationalID != null) {
@@ -388,7 +388,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
             ),
           );
 
-        request.fields['front_National_id'] = _frontNationalID!.path;
+          request.fields['front_National_id'] = _frontNationalID!.path;
         }
         if (_backNationalID != null) {
           request.files.add(
@@ -405,35 +405,34 @@ class _SignUpScreenState extends State<SignUpScreen> {
         var responseBody = await response.stream.bytesToString();
 
         if (response.statusCode == 200) {
-            final data = jsonDecode(responseBody);
-            final prefs = await SharedPreferences.getInstance();
+          final data = jsonDecode(responseBody);
+          final prefs = await SharedPreferences.getInstance();
 
-            // Check for error response
-            if (data['status'] != 'success') {
-                throw Exception(data['message'] ?? 'Unknown error');
-            }
+          // Check for error response
+          if (data['status'] != 'success') {
+            throw Exception(data['message'] ?? 'Unknown error');
+          }
 
-            // Get citizen data (single object)
-            final citizen = data['citizen'];
-            final citizenId = citizen['citizen_id'];
+          // Get citizen data (single object)
+          final citizen = data['citizen'];
+          final citizenId = citizen['citizen_id'];
 
-            // Save to SharedPreferences
-            await prefs.setInt('user_id', citizenId is String 
-                ? int.parse(citizenId) 
-                : citizenId
-            );
-            await prefs.setString('email', citizen['email']);
-            
-            // Navigate
-            if (mounted) {
-                Navigator.pushReplacementNamed(context, 'home_screen');
-            }
-        }else {
-          if(kDebugMode){
+          // Save to SharedPreferences
+          await prefs.setInt(
+            'user_id',
+            citizenId is String ? int.parse(citizenId) : citizenId,
+          );
+          await prefs.setString('email', citizen['email']);
+
+          // Navigate
+          if (mounted) {
+            Navigator.pushReplacementNamed(context, 'home_screen');
+          }
+        } else {
+          if (kDebugMode) {
             print('Server response: $responseBody');
           }
           throw Exception('Server error: ${response.statusCode}');
-
         }
       } catch (e) {
         _showError('Submission failed: ${e.toString()}');

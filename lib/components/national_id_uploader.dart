@@ -5,6 +5,7 @@ import 'package:image_picker/image_picker.dart';
 class NationalIDUploader extends StatefulWidget {
   final Function(File?) onImageSelected;
   final String buttonText;
+  final double width;
   final double height;
   final IconData icon;
 
@@ -13,7 +14,7 @@ class NationalIDUploader extends StatefulWidget {
     required this.onImageSelected,
     this.buttonText = 'Upload National ID',
     this.height = 200,
-    this.icon = Icons.upload,
+    this.icon = Icons.upload, required this.width,
   });
 
   @override
@@ -42,11 +43,12 @@ class _NationalIDUploaderState extends State<NationalIDUploader> {
   @override
   Widget build(BuildContext context) {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
+      // crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         GestureDetector(
           onTap: _pickImage,
           child: Container(
+            width: widget.width,
             height: widget.height,
             decoration: BoxDecoration(
               border: Border.all(color: Colors.grey.shade300),
