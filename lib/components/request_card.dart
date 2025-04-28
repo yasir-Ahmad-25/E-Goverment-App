@@ -2,7 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:icons_plus/icons_plus.dart';
 
 class RequestCard extends StatelessWidget {
-  const RequestCard({super.key});
+  final String card_title;
+  final String card_text;
+  final bool showRequestButton;
+  const RequestCard({
+    super.key,
+    required this.card_title,
+    required this.card_text,
+    required this.showRequestButton,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -28,7 +36,8 @@ class RequestCard extends StatelessWidget {
                 ), //CircleAvatar
                 const SizedBox(height: 10), //SizedBox
                 Text(
-                  'Request National ID Card',
+                  // 'Request National ID Card',
+                  card_title,
                   style: TextStyle(
                     fontSize: 18,
                     color: Colors.blue[900],
@@ -36,54 +45,82 @@ class RequestCard extends StatelessWidget {
                   ), //Textstyle
                 ), //Text
                 const SizedBox(height: 10), //SizedBox
-                const Text(
-                  'Muwaadin Hada Dalbo National Id Card Cadeynaya inaa Somali Tahay ?',
+                Text(
+                  // 'Muwaadin Hada Dalbo National Id Card Cadeynaya inaa Somali Tahay ?',
+                  card_text,
                   style: TextStyle(
                     fontSize: 15,
                     color: Colors.black,
                   ), //Textstyle
                 ), //Text
                 const SizedBox(height: 15), //SizedBox
-                Center(
-                  child: ElevatedButton(
-                    onPressed: () {
-                      print("Navigate To National Id Card Image Form ?");
-                    },
-                    style: ButtonStyle(
-                      backgroundColor: WidgetStateProperty.all(
-                        Colors.greenAccent,
-                      ),
-                      shape: WidgetStateProperty.all(
-                        RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                      padding: WidgetStateProperty.all(
-                        const EdgeInsets.symmetric(
-                          horizontal: 24,
-                          vertical: 12,
-                        ),
-                      ),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min, // Prevents stretching
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: const [
-                        Icon(Bootstrap.card_text, color: Colors.black87),
-                        SizedBox(width: 8),
-                        Text(
-                          'Request Now',
-                          style: TextStyle(color: Colors.black87),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
+                Center(child: showRequestButton ? RequestButton() : PendingButton()),
               ],
             ), //Column
           ), //Padding
         ), //SizedBox
       ), //Card
     ); //Center
+  }
+}
+
+class RequestButton extends StatelessWidget {
+  const RequestButton({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return ElevatedButton(
+      onPressed: () {
+        print("Navigate To National Id Card Image Form ?");
+      },
+      style: ButtonStyle(
+        backgroundColor: WidgetStateProperty.all(Colors.greenAccent),
+        shape: WidgetStateProperty.all(
+          RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        ),
+        padding: WidgetStateProperty.all(
+          const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min, // Prevents stretching
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: const [
+          Icon(Bootstrap.card_text, color: Colors.black87),
+          SizedBox(width: 8),
+          Text('Request Now', style: TextStyle(color: Colors.black87)),
+        ],
+      ),
+    );
+  }
+}
+class PendingButton extends StatelessWidget {
+  const PendingButton({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return ElevatedButton(
+      onPressed: () {
+        print("Pending");
+      },
+      style: ButtonStyle(
+        backgroundColor: WidgetStateProperty.all(Colors.redAccent),
+        shape: WidgetStateProperty.all(
+          RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        ),
+        padding: WidgetStateProperty.all(
+          const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min, // Prevents stretching
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: const [
+          Icon(Bootstrap.card_text, color: Colors.white),
+          SizedBox(width: 8),
+          Text('Card Requested', style: TextStyle(color: Colors.white)),
+        ],
+      ),
+    );
   }
 }

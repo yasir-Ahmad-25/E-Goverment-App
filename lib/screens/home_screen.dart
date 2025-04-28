@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:e_govermenet/components/banner_card.dart';
 import 'package:e_govermenet/screens/service_detailed_page.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -200,7 +201,7 @@ class HomeContent extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Banner(),
+        BannerCard(),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 12.0),
           child: Text(
@@ -302,25 +303,6 @@ class PendingUser extends StatelessWidget {
   }
 }
 
-class Banner extends StatelessWidget {
-  const Banner({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 12.0),
-      child: Container(
-        width: double.infinity,
-        height: 120,
-        decoration: BoxDecoration(
-          color: Colors.grey,
-          borderRadius: BorderRadius.circular(8),
-        ),
-        // child: Image.asset(""),
-      ),
-    );
-  }
-}
 
 class Services extends StatelessWidget {
   final List<GovService> services;
