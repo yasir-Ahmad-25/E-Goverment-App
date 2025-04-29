@@ -236,7 +236,7 @@ class PageContent extends StatelessWidget {
     );
   }
 }
-
+ 
 // components
 
 class National_ID_CARD_STRUCTURE extends StatelessWidget {

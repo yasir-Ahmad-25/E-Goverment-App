@@ -66,7 +66,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 return 'Password must be at least 6 characters';
               }
               return null;
-            },
+            }, isEnabled: true,
           ),
 
           SizedBox(height: 15),
@@ -84,7 +84,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 return 'Password must be at least 6 characters';
               }
               return null;
-            },
+            }, isEnabled: true,
           ),
 
           SizedBox(height: 15),
@@ -102,7 +102,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 return 'Password must be at least 6 characters';
               }
               return null;
-            },
+            }, isEnabled: true,
           ),
 
           SizedBox(height: 15),
@@ -132,7 +132,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
           DateInputField(
             selectedDate: _dob,
             onChanged: (date) => setState(() => _dob = date),
-            labelText: 'Date of Birth',
+            labelText: 'Date of Birth', enabled: true,
           ),
 
           SizedBox(height: 20),
@@ -151,7 +151,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 return 'National ID is required';
               }
               return null;
-            },
+            }, isEnabled: true,
           ),
 
           const SizedBox(height: 20),
@@ -193,7 +193,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 return 'Username is required';
               }
               return null;
-            },
+            }, isEnabled: true,
           ),
 
           SizedBox(height: 15),
@@ -218,7 +218,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 return 'Password must be at least 6 characters';
               }
               return null;
-            },
+            }, isEnabled: true,
           ),
 
           SizedBox(height: 15),
@@ -245,7 +245,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 return 'Password Should Match !';
               }
               return null;
-            },
+            }, isEnabled: true,
           ),
         ],
       ),

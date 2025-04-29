@@ -5,12 +5,13 @@ class DateInputField extends StatefulWidget {
   final DateTime? selectedDate;
   final Function(DateTime?) onChanged;
   final String labelText;
+  final bool enabled;
 
   const DateInputField({
     super.key,
     required this.selectedDate,
     required this.onChanged,
-    this.labelText = 'Date of Birth',
+    this.labelText = 'Date of Birth', required this.enabled,
   });
 
   @override
@@ -57,11 +58,13 @@ class _DateInputFieldState extends State<DateInputField> {
         // Text(widget.labelText),
         const SizedBox(height: 8),
         GestureDetector(
-          onTap: () => _selectDate(context),
+          // onTap: () => _selectDate(context),
+          onTap:  widget.enabled ? () => _selectDate(context) : null,
           child: Container(
             padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
             decoration: BoxDecoration(
-              border: Border.all(color: Colors.grey),
+              // border: Border.all(color: Colors.grey),
+              border: Border.all(color: widget.enabled ? Colors.grey : Colors.grey[300]!),
               borderRadius: BorderRadius.circular(4),
             ),
             child: Row(
@@ -71,13 +74,21 @@ class _DateInputFieldState extends State<DateInputField> {
                   _selectedDate != null
                       ? _dateFormatter.format(_selectedDate!)
                       : 'Select Birth Date',
+                  // style: TextStyle(
+                  //   color: _selectedDate != null ? Colors.black : Colors.grey,
+                  // ),
                   style: TextStyle(
-                    color: _selectedDate != null ? Colors.black : Colors.grey,
+                    color: widget.enabled 
+                        ? (_selectedDate != null ? Colors.black : Colors.grey)
+                        : Colors.grey, // Disabled text color
                   ),
                 ),
                 Icon(
                   Icons.calendar_today,
-                  color: Theme.of(context).primaryColor,
+                  // color: Theme.of(context).primaryColor,
+                  color: widget.enabled 
+                      ? Theme.of(context).primaryColor 
+                      : Colors.grey, // Disabled icon color
                 ),
               ],
             ),

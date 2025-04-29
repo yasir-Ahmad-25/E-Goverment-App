@@ -1,6 +1,7 @@
 import 'package:e_govermenet/components/Forms/national_id_card_form.dart';
 import 'package:e_govermenet/screens/home_screen.dart';
 import 'package:e_govermenet/screens/login_screen.dart';
+import 'package:e_govermenet/screens/service_detailed_page.dart';
 import 'package:e_govermenet/screens/sign_up_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -26,7 +27,7 @@ class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      darkTheme: ThemeData.dark(),
+      // darkTheme: ThemeData.dark(),
       home: FutureBuilder(
         future: _checkLoginStatus(),
         builder: (context, snapshot) {

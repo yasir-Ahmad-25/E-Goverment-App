@@ -6,6 +6,7 @@ class InputFields extends StatelessWidget {
   final Icon? prefixIcon;
   final IconButton? suffixIcon;
   final bool isPassword;
+  final bool isEnabled;
   final String? Function(String?)? validator;
   const InputFields({
     super.key,
@@ -14,7 +15,7 @@ class InputFields extends StatelessWidget {
     required this.prefixIcon,
     required this.suffixIcon,
     required this.isPassword,
-    required this.validator,
+    required this.validator, required this.isEnabled,
   });
 
   @override
@@ -22,7 +23,7 @@ class InputFields extends StatelessWidget {
     return TextField(
       controller: input_controller,
       obscureText: isPassword,
-
+      enabled: isEnabled,
       decoration: InputDecoration(
         label: inputlabel,
         prefixIcon: prefixIcon,
