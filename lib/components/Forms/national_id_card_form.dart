@@ -87,7 +87,7 @@ class _NationalIdCardFormState extends State<NationalIdCardForm> {
   Future<void> _loadDocumentTypes() async {
     try {
       final response = await http.get(
-        Uri.parse('http://192.168.100.10/egov_back/documentTypes/'),
+        Uri.parse('http://192.168.100.10/egov_back/documentTypes/3'),
       );
 
       if (response.statusCode == 200) {
@@ -538,7 +538,7 @@ class _NationalIdCardFormState extends State<NationalIdCardForm> {
                 _document = File(file.path!);
                 print("File Path Found");
               }
-            },
+            }, initialPlaceholderText: 'Upload $_selectedDocumentType',
           ),
 
           SizedBox(height: 15),

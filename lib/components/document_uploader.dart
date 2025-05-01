@@ -3,8 +3,9 @@ import 'package:file_picker/file_picker.dart';
 
 class DocumentUploader extends StatefulWidget {
   final Function(PlatformFile?) onFileSelected;
-
-  const DocumentUploader({super.key, required this.onFileSelected});
+  
+  final String initialPlaceholderText;
+  const DocumentUploader({super.key, required this.onFileSelected, required this.initialPlaceholderText});
 
   @override
   _DocumentUploaderState createState() => _DocumentUploaderState();
@@ -12,7 +13,20 @@ class DocumentUploader extends StatefulWidget {
 
 class _DocumentUploaderState extends State<DocumentUploader> {
   PlatformFile? _selectedFile;
-  String placeholderText = "Upload Document";
+  late String _placeholderText;
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    _placeholderText = widget.initialPlaceholderText;
+  }
+
+  void _updatePlaceholderText(String newText) {
+    setState(() {
+      _placeholderText = newText;
+    });
+  }
 
   Future<void> _pickFile() async {
     final result = await FilePicker.platform.pickFiles(
@@ -24,7 +38,8 @@ class _DocumentUploaderState extends State<DocumentUploader> {
       setState(() {
         _selectedFile = result.files.first;
         if (_selectedFile != null) {
-          placeholderText = _selectedFile!.name;
+          // widget.placeholderText = _selectedFile!.name;
+          _updatePlaceholderText(_selectedFile!.name);
         }
       });
       widget.onFileSelected(_selectedFile);
@@ -43,7 +58,7 @@ class _DocumentUploaderState extends State<DocumentUploader> {
             child: ElevatedButton.icon(
               onPressed: _pickFile,
               icon: Icon(Icons.upload_file),
-              label: Text(placeholderText),
+              label: Text(_placeholderText),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.grey, // Background color (primary blue)
                 foregroundColor: Colors.white, // Text color

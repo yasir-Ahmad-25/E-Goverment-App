@@ -4,6 +4,7 @@ import 'package:e_govermenet/components/banner_card.dart';
 import 'package:e_govermenet/screens/service_detailed_page.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'package:icons_plus/icons_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -36,15 +37,20 @@ class _HomeScreenState extends State<HomeScreen> {
     switch (index) {
       case 0:
         // Navigate to Home
+        Navigator.pushNamed(context, 'home_screen');
         break;
       case 1:
-        // Navigate to Search
+        // Navigate to Reports Screen
+        Navigator.pushNamed(context, 'reports_screen');
         break;
       case 2:
-        // Navigate to Cart
+        // Navigate to Tax Payment
+        Navigator.pushNamed(context, 'help_center');
         break;
       case 3:
         // Navigate to Profile
+        // Navigator.pushNamed(context, 'user_profile');
+        _logout();
         break;
     }
   }
@@ -178,9 +184,9 @@ class _HomeScreenState extends State<HomeScreen> {
         backgroundColor: Colors.white,
         elevation: 4, // visible shadow
         onPressed: () {
-          // Your FAB action
+          Navigator.pushNamed(context, 'taxes');
         },
-        child: const Icon(Bootstrap.wind, color: Colors.blue),
+        child: const Icon(Icons.attach_money_rounded, color: Colors.blue),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
 
@@ -303,7 +309,6 @@ class PendingUser extends StatelessWidget {
   }
 }
 
-
 class Services extends StatelessWidget {
   final List<GovService> services;
   const Services({super.key, required this.services});
@@ -316,8 +321,8 @@ class Services extends StatelessWidget {
         child: GridView.builder(
           itemCount: services.length,
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 4,
-            mainAxisSpacing: 20,
+            crossAxisCount: 3,
+            mainAxisSpacing: 10,
             crossAxisSpacing: 10,
           ),
           itemBuilder: (context, index) {
@@ -356,18 +361,17 @@ class ServiceIcon extends StatelessWidget {
             ),
             child: Icon(Icons.miscellaneous_services),
           ),
-          SizedBox(height: 4),
+          SizedBox(height: 5),
           Text(
             service.name,
             textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 12),
+            style: TextStyle(fontSize: 13),
           ),
         ],
       ),
     );
   }
 }
-
 
 // NAVIGATION BAR
 
@@ -401,8 +405,8 @@ class BottomBar extends StatelessWidget {
               selectedColor: primaryColor,
             ),
             NavBarIcon(
-              text: "Search",
-              icon: Bootstrap.search,
+              text: "Report",
+              icon: FontAwesomeIcons.file,
               selected: selectedIndex == 1,
               onPressed: () => method?.call(1),
               defaultColor: Colors.grey,
@@ -410,16 +414,17 @@ class BottomBar extends StatelessWidget {
             ),
             const SizedBox(width: 56), // space for FAB
             NavBarIcon(
-              text: "Cart",
-              icon: Icons.local_grocery_store_outlined,
+              text: "Help Center",
+              icon: Icons.help_rounded,
               selected: selectedIndex == 2,
               onPressed: () => method?.call(2),
               defaultColor: Colors.grey,
               selectedColor: primaryColor,
             ),
             NavBarIcon(
-              text: "Calendar",
-              icon: Bootstrap.person,
+              // text: "Person ",
+              text: "Logout",
+              icon: FontAwesomeIcons.rightFromBracket,
               selected: selectedIndex == 3,
               onPressed: () => method?.call(3),
               defaultColor: Colors.grey,
