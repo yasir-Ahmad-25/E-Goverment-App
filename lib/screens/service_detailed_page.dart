@@ -113,6 +113,8 @@ class _ServiceDetailPageState extends State<ServiceDetailPage> {
 
   bool hasNationalId = false;
   String RequesStatus = "";
+  String National_Id_Card_Citizen_imagePath = "";
+  bool is_National_Id_Card_Expired = false;
 
   // Create controllers for each field
   final TextEditingController _cardNumberController = TextEditingController();
@@ -124,20 +126,6 @@ class _ServiceDetailPageState extends State<ServiceDetailPage> {
   final TextEditingController _IdNumber = TextEditingController();
   final TextEditingController _maritalStatusController =
       TextEditingController();
-
-  @override
-  void initState() {
-    super.initState();
-    _loadServiceData();
-    // Set initial text values (replace with your data)
-    _cardNumberController.text = '1234 5678 9012 3456';
-    _issueDateController.text = '01/01/2023';
-    _expiryDateController.text = '12/31/2028';
-    _fullNameController.text = 'John Doe';
-    _birthDateController.text = '05/15/1990';
-    _genderController.text = 'Male';
-    _maritalStatusController.text = 'Single';
-  }
 
   Future<void> _loadServiceData() async {
     final prefs = await SharedPreferences.getInstance();
@@ -177,6 +165,83 @@ class _ServiceDetailPageState extends State<ServiceDetailPage> {
     }
   }
 
+  Future<void> _loadNationalIdCardData() async {
+    final prefs = await SharedPreferences.getInstance();
+    final citizenId = prefs.getInt('user_id');
+
+    try {
+      var response = await http.get(
+        Uri.parse('http://192.168.100.10/egov_back/national_id/$citizenId'),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['status'] == 'success' &&
+            data['national_id_data'] != null &&
+            data['national_id_data'].isNotEmpty) {
+          final nationalIdData = data['national_id_data'][0];
+
+          // Check if the national_id_number is not "0" or empty
+          if (isValidNationalId(nationalIdData['national_id_number'])) {
+            // check if national id is Expired or Valid
+            if (nationalIdData['national_id_card_status'] == 'Expired') {
+              setState(() {
+                is_National_Id_Card_Expired = true;
+              });
+            }
+
+            setState(() {
+              hasNationalId = true;
+
+              // You can also load other data into your controllers here
+              _cardNumberController.text = nationalIdData['national_id_number'];
+              _fullNameController.text = nationalIdData['fullname'];
+              _birthDateController.text = nationalIdData['birthdate'];
+              _genderController.text = nationalIdData['gender'];
+              _issueDateController.text = nationalIdData['issued_date'];
+              _expiryDateController.text = nationalIdData['Expire_Date'];
+              _maritalStatusController.text = nationalIdData['martial_status'];
+              National_Id_Card_Citizen_imagePath =
+                  "${nationalIdData['citizen_image']}";
+            });
+          } else {
+            setState(() {
+              hasNationalId = false;
+            });
+            print("National ID not approved or invalid.");
+          }
+        } else {
+          print("No national ID data found.");
+          setState(() {
+            hasNationalId = false;
+          });
+        }
+      } else {
+        throw Exception("Failed to load National ID data.");
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Error: ${e.toString()}")));
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _loadServiceData();
+    _loadNationalIdCardData();
+
+    // Set initial text values (replace with your data)
+    _cardNumberController.text = '1234 5678 9012 3456';
+    _issueDateController.text = '01/01/2023';
+    _expiryDateController.text = '12/31/2028';
+    _fullNameController.text = 'John Doe';
+    _birthDateController.text = '05/15/1990';
+    _genderController.text = 'Male';
+    _maritalStatusController.text = 'Single';
+  }
+
   @override
   void dispose() {
     // Dispose all controllers
@@ -188,6 +253,10 @@ class _ServiceDetailPageState extends State<ServiceDetailPage> {
     _genderController.dispose();
     _maritalStatusController.dispose();
     super.dispose();
+  }
+
+  bool isValidNationalId(String? id) {
+    return id != null && id != '0' && id.trim().isNotEmpty;
   }
 
   @override
@@ -213,6 +282,8 @@ class _ServiceDetailPageState extends State<ServiceDetailPage> {
                 birthDateController: _birthDateController,
                 genderController: _genderController,
                 maritalStatusController: _maritalStatusController,
+                citizen_image_path: National_Id_Card_Citizen_imagePath,
+                is_National_Id_Card_Expired: is_National_Id_Card_Expired,
               ), // Centered RequestCard widget
             ],
 
@@ -285,6 +356,8 @@ class NationalIdCard extends StatelessWidget {
   final TextEditingController birthDateController;
   final TextEditingController genderController;
   final TextEditingController maritalStatusController;
+  final String citizen_image_path;
+  final bool is_National_Id_Card_Expired;
 
   const NationalIdCard({
     super.key,
@@ -297,6 +370,8 @@ class NationalIdCard extends StatelessWidget {
     required this.birthDateController,
     required this.genderController,
     required this.maritalStatusController,
+    required this.citizen_image_path,
+    required this.is_National_Id_Card_Expired,
   });
 
   @override
@@ -312,6 +387,8 @@ class NationalIdCard extends StatelessWidget {
           birthDateController: birthDateController,
           genderController: genderController,
           maritalStatusController: maritalStatusController,
+          image_path: citizen_image_path,
+          is_National_Id_Card_Expired: is_National_Id_Card_Expired,
         );
       } else {
         return Center(
@@ -352,6 +429,8 @@ class PageContent extends StatelessWidget {
   final TextEditingController birthDateController;
   final TextEditingController genderController;
   final TextEditingController maritalStatusController;
+  final String image_path;
+  final bool is_National_Id_Card_Expired;
   const PageContent({
     super.key,
     required this.cardNumberController,
@@ -361,13 +440,18 @@ class PageContent extends StatelessWidget {
     required this.birthDateController,
     required this.genderController,
     required this.maritalStatusController,
+    required this.image_path,
+    required this.is_National_Id_Card_Expired,
   });
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
-        National_ID_CARD_STRUCTURE(),
+        National_ID_CARD_STRUCTURE(
+          Citizen_ID_Image: image_path,
+          is_National_Id_Card_Expired: is_National_Id_Card_Expired,
+        ),
         SizedBox(height: 40),
         Card_Details(
           cardNumberController: cardNumberController,
@@ -377,6 +461,7 @@ class PageContent extends StatelessWidget {
           birthDateController: birthDateController,
           genderController: genderController,
           maritalStatusController: maritalStatusController,
+          is_National_Id_Card_Expired: is_National_Id_Card_Expired,
         ),
       ],
     );
@@ -386,10 +471,17 @@ class PageContent extends StatelessWidget {
 // components
 
 class National_ID_CARD_STRUCTURE extends StatelessWidget {
-  const National_ID_CARD_STRUCTURE({super.key});
+  final String Citizen_ID_Image;
+  final bool is_National_Id_Card_Expired;
+  const National_ID_CARD_STRUCTURE({
+    super.key,
+    required this.Citizen_ID_Image,
+    required this.is_National_Id_Card_Expired,
+  });
 
   @override
   Widget build(BuildContext context) {
+    print("The Citizen image is: $Citizen_ID_Image");
     return Container(
       width: double.infinity,
       height: 230, // Increased height
@@ -418,7 +510,7 @@ class National_ID_CARD_STRUCTURE extends StatelessWidget {
                 height: 60,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(8),
-                  image: const DecorationImage(
+                  image: DecorationImage(
                     image: NetworkImage(
                       "https://www.ecss-online.com/2013/wp-content/uploads/2022/12/somalia.jpg",
                     ),
@@ -443,6 +535,26 @@ class National_ID_CARD_STRUCTURE extends StatelessWidget {
                   ),
                 ],
               ),
+
+              is_National_Id_Card_Expired
+                  ? Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                    child: Container(
+                      // width: 100,
+                      decoration: BoxDecoration(
+                        color: Colors.redAccent,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(6.0),
+                        child: Text(
+                          "Expired",
+                          style: TextStyle(color: Colors.white),
+                        ),
+                      ),
+                    ),
+                  )
+                  : SizedBox(),
             ],
           ),
 
@@ -498,9 +610,9 @@ class National_ID_CARD_STRUCTURE extends StatelessWidget {
                 height: 120,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(8),
-                  image: const DecorationImage(
+                  image: DecorationImage(
                     image: NetworkImage(
-                      "https://www.ecss-online.com/2013/wp-content/uploads/2022/12/somalia.jpg",
+                      "http://192.168.100.10/egov_back/$Citizen_ID_Image",
                     ),
                     fit: BoxFit.cover,
                   ),
@@ -535,6 +647,7 @@ class Card_Details extends StatelessWidget {
   final TextEditingController birthDateController;
   final TextEditingController genderController;
   final TextEditingController maritalStatusController;
+  final bool is_National_Id_Card_Expired;
   const Card_Details({
     super.key,
     required this.cardNumberController,
@@ -544,6 +657,7 @@ class Card_Details extends StatelessWidget {
     required this.birthDateController,
     required this.genderController,
     required this.maritalStatusController,
+    required this.is_National_Id_Card_Expired,
   });
 
   @override
@@ -551,9 +665,33 @@ class Card_Details extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          "Card-Details",
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              "Card-Details",
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+            is_National_Id_Card_Expired
+                ? Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                  child: Container(
+                    // width: 100,
+                    decoration: BoxDecoration(
+                      color: Colors.blueAccent,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(6.0),
+                      child: Text(
+                        "Renewal",
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    ),
+                  ),
+                )
+                : SizedBox(),
+          ],
         ),
         Divider(),
         _buildTextField(
