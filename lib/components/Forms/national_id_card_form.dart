@@ -184,7 +184,7 @@ class _NationalIdCardFormState extends State<NationalIdCardForm> {
 
       request.fields['citizen_id'] = citizenId.toString();
       request.fields['service_id'] = "1";
-      request.fields['birthState'] = _selectedState ?? '';
+      request.fields['issued_at_location'] = _selectedState ?? '';
       request.fields['proffesion'] = _selectedDocumentType ?? _proffesion.text;
       request.fields['document_Type'] = _selectedDocumentType ?? '';
 

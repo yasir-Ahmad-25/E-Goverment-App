@@ -183,7 +183,7 @@ class _PassportFormState extends State<PassportForm> {
 
       request.fields['citizen_id'] = citizenId.toString();
       request.fields['service_id'] = "2";
-      request.fields['birthState'] = _selectedState ?? '';
+      request.fields['issued_at_location'] = _selectedState ?? '';
       request.fields['proffesion'] = _selectedDocumentType ?? _proffesion.text;
       request.fields['document_Type'] = _selectedDocumentType ?? '';
 
@@ -203,14 +203,20 @@ class _PassportFormState extends State<PassportForm> {
       // cid document
       if (_cid_document != null) {
         request.files.add(
-          await http.MultipartFile.fromPath('cid_document', _cid_document!.path),
+          await http.MultipartFile.fromPath(
+            'cid_document',
+            _cid_document!.path,
+          ),
         );
       }
 
       // healthcare document
       if (_healthcare_document != null) {
         request.files.add(
-          await http.MultipartFile.fromPath('healthcare_document', _healthcare_document!.path),
+          await http.MultipartFile.fromPath(
+            'healthcare_document',
+            _healthcare_document!.path,
+          ),
         );
       }
 
@@ -333,7 +339,7 @@ class _PassportFormState extends State<PassportForm> {
             ),
 
             SizedBox(height: 5),
-            
+
             _isLoading
                 ? const CircularProgressIndicator()
                 : Padding(
@@ -348,7 +354,7 @@ class _PassportFormState extends State<PassportForm> {
                     child: DropdownButton<String>(
                       isExpanded: true,
                       value: _selectedState,
-                      hint: Text('Select State'),
+                      hint: Text('Applied At (e.g : Banaadir or Galmudug)'),
                       onChanged: (value) {
                         setState(() => _selectedState = value);
                         // widget.onChanged(value);

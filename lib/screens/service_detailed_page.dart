@@ -38,6 +38,16 @@ class _ServiceDetailPageState extends State<ServiceDetailPage> {
     "Yes, it’s recommended to renew it 6 months before expiration to avoid travel issues.",
     "Report it immediately to the relevant authorities and reapply for a new one through the system.",
   ];
+
+  String _passport_citizen_fullname = "";
+  String _passport_citizen_gender = "";
+  String _passport_birthState = "";
+  String _passport_birth_date = "";
+  String _passport_citizen_imagePath = "";
+  String _passport_Number = "";
+  String _passport_issued_At = "";
+  String _passport_expire_At = "";
+
   // ================================== PASSPORT SECTION END ===================================
 
   // ================================== BIRTH CERTIFICATE SECTION START ===================================
@@ -66,6 +76,7 @@ class _ServiceDetailPageState extends State<ServiceDetailPage> {
   final TextEditingController _birthCertificate_state = TextEditingController();
   final TextEditingController _birthCertificate_proffession =
       TextEditingController();
+  String _birthCertificateScannedImagePath = "";
 
   // ================================== BIRTH CERTIFICATE SECTION END ===================================
 
@@ -112,9 +123,14 @@ class _ServiceDetailPageState extends State<ServiceDetailPage> {
   ];
 
   bool hasNationalId = false;
+  bool hasPassportId = false; // For Passport
+  bool hasBirthCertificate = false; // For Birth Certificate
+
   String RequesStatus = "";
   String National_Id_Card_Citizen_imagePath = "";
   bool is_National_Id_Card_Expired = false;
+  bool is_Passport_Expired = false;
+  bool is_Certificate_Expired = false;
 
   // Create controllers for each field
   final TextEditingController _cardNumberController = TextEditingController();
@@ -226,11 +242,153 @@ class _ServiceDetailPageState extends State<ServiceDetailPage> {
     }
   }
 
+  Future<void> _loadBirthCertificateData() async {
+    final prefs = await SharedPreferences.getInstance();
+    final citizenId = prefs.getInt('user_id');
+
+    try {
+      var response = await http.get(
+        Uri.parse(
+          'http://192.168.100.10/egov_back/birth_certificate/$citizenId',
+        ),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['status'] == 'success' &&
+            data['birth_certificate_data'] != null &&
+            data['birth_certificate_data'].isNotEmpty) {
+          final birthCertificateData = data['birth_certificate_data'][0];
+
+          // Check if the national_id_number is not "0" or empty
+          if (isPassportId(birthCertificateData['scanned_birth_certificate'])) {
+            // check if national id is Expired or Valid
+            if (birthCertificateData['certificate_status'] == 'Expired') {
+              setState(() {
+                is_Certificate_Expired = true;
+              });
+            }
+
+            if (birthCertificateData['citizen_image'] != null &&
+                birthCertificateData['citizen_image'].toString().isNotEmpty) {
+              _birthCertificateScannedImagePath =
+                  birthCertificateData['scanned_birth_certificate'];
+            } else {
+              print("No image path found in passport data.");
+            }
+
+            setState(() {
+              hasBirthCertificate = true;
+
+              // You can also load other data into your controllers here
+              _birthCertificate_fullname.text =
+                  birthCertificateData['fullname'] ?? '';
+              _birthCertificate_gender.text =
+                  birthCertificateData['gender'] ?? '';
+              _birthCertificate_state.text =
+                  birthCertificateData['birthState'] ?? '';
+              _birthCertificate_proffession.text =
+                  birthCertificateData['Proffession'] ?? '';
+              _birthCertificateScannedImagePath =
+                  birthCertificateData['scanned_birth_certificate'] ?? '';
+            });
+          } else {
+            setState(() {
+              hasBirthCertificate = false;
+            });
+            print("Birth Certificate not approved or invalid.");
+          }
+        } else {
+          print("No Passport data found.");
+          setState(() {
+            hasBirthCertificate = false;
+          });
+        }
+      } else {
+        throw Exception("Failed to load Birth Ceritificate data.");
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Error: ${e.toString()}")));
+    }
+  }
+
+  Future<void> _loadPassportData() async {
+    final prefs = await SharedPreferences.getInstance();
+    final citizenId = prefs.getInt('user_id');
+
+    try {
+      var response = await http.get(
+        Uri.parse('http://192.168.100.10/egov_back/passport_id/$citizenId'),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['status'] == 'success' &&
+            data['passport_data'] != null &&
+            data['passport_data'].isNotEmpty) {
+          final passportData = data['passport_data'][0];
+
+          print("Passport Data : $passportData");
+          // Check if the national_id_number is not "0" or empty
+          if (isPassportId(passportData['passport_number'])) {
+            // check if national id is Expired or Valid
+            if (passportData['passport_status'] == 'Expired') {
+              setState(() {
+                is_Passport_Expired = true;
+              });
+            }
+
+            if (passportData['citizen_image'] != null &&
+                passportData['citizen_image'].toString().isNotEmpty) {
+              _passport_citizen_imagePath = passportData['citizen_image'];
+            } else {
+              print("No image path found in passport data.");
+            }
+
+            setState(() {
+              hasPassportId = true;
+
+              // You can also load other data into your controllers here
+              _passport_citizen_fullname = passportData['fullname'] ?? '';
+              _passport_citizen_gender = passportData['gender'] ?? '';
+              _passport_birthState = passportData['birthState'] ?? '';
+              _passport_birth_date = passportData['birthdate'] ?? '';
+              _passport_Number = passportData['passport_number'] ?? '';
+              _passport_issued_At = passportData['issued_At'] ?? '';
+              _passport_expire_At = passportData['Expire_At'] ?? '';
+              _passport_citizen_imagePath = passportData['citizen_image'] ?? '';
+            });
+          } else {
+            setState(() {
+              hasPassportId = false;
+            });
+            print("Passport not approved or invalid.");
+          }
+        } else {
+          print("No Passport data found.");
+          setState(() {
+            hasPassportId = false;
+          });
+        }
+      } else {
+        throw Exception("Failed to load Passport data.");
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Error: ${e.toString()}")));
+    }
+  }
+
   @override
   void initState() {
     super.initState();
     _loadServiceData();
     _loadNationalIdCardData();
+    _loadPassportData();
+    _loadBirthCertificateData();
 
     // Set initial text values (replace with your data)
     _cardNumberController.text = '1234 5678 9012 3456';
@@ -256,6 +414,10 @@ class _ServiceDetailPageState extends State<ServiceDetailPage> {
   }
 
   bool isValidNationalId(String? id) {
+    return id != null && id != '0' && id.trim().isNotEmpty;
+  }
+
+  bool isPassportId(String? id) {
     return id != null && id != '0' && id.trim().isNotEmpty;
   }
 
@@ -289,23 +451,35 @@ class _ServiceDetailPageState extends State<ServiceDetailPage> {
 
             if (widget.service.serId == 2) ...[
               Passport(
-                hasPassport: true,
-                requestStatus: "Approved",
+                hasPassport: hasPassportId,
+                requestStatus: RequesStatus,
                 Questions: Questions,
                 Answers: Answers,
+                passport_citizen_image_path: _passport_citizen_imagePath,
+                is_passport_Expired: is_Passport_Expired,
+                fullname: _passport_citizen_fullname,
+                gender: _passport_citizen_gender,
+                birthState: _passport_birthState,
+                birthdate: _passport_birth_date,
+                issuedDate: _passport_issued_At,
+                expireDate: _passport_expire_At,
+                passport_number: _passport_Number,
               ),
             ],
 
             if (widget.service.serId == 3) ...[
               BirthCertificate(
-                hasBirthCertificate: true,
-                birthcertificate_requestStatus: "Approved",
+                hasBirthCertificate: hasBirthCertificate,
+                birthcertificate_requestStatus: RequesStatus,
                 birthcertificate_Questions: birthcertificate_Questions,
                 birthcertificate_Answers: birthcertificate_Answers,
                 birthCertificate_fullname: _birthCertificate_fullname,
                 birthCertificate_gender: _birthCertificate_gender,
                 birthCertificate_state: _birthCertificate_state,
                 birthCertificate_proffession: _birthCertificate_proffession,
+                birthCertificateScannedImagePath:
+                    _birthCertificateScannedImagePath,
+                isBirthCertificateExpired: is_Certificate_Expired,
               ),
             ],
 
@@ -764,13 +938,16 @@ class Passport extends StatelessWidget {
   final List<String> Questions;
   final List<String> Answers;
 
-  // final TextEditingController cardNumberController;
-  // final TextEditingController issueDateController;
-  // final TextEditingController expiryDateController;
-  // final TextEditingController fullNameController;
-  // final TextEditingController birthDateController;
-  // final TextEditingController genderController;
-  // final TextEditingController maritalStatusController;
+  final String passport_citizen_image_path;
+  final bool is_passport_Expired;
+
+  final String fullname;
+  final String gender;
+  final String birthState;
+  final String birthdate;
+  final String issuedDate;
+  final String expireDate;
+  final String passport_number;
 
   const Passport({
     super.key,
@@ -778,27 +955,212 @@ class Passport extends StatelessWidget {
     required this.requestStatus,
     required this.Questions,
     required this.Answers,
+    required this.passport_citizen_image_path,
+    required this.is_passport_Expired,
+    required this.fullname,
+    required this.gender,
+    required this.birthState,
+    required this.birthdate,
+    required this.issuedDate,
+    required this.expireDate,
+    required this.passport_number,
   });
 
   @override
   Widget build(BuildContext context) {
-    print("Does it have: $hasPassport the request status is: $requestStatus");
     if (hasPassport) {
       // check the request status
       if (requestStatus == 'Approved') {
-        // return Text("Passport Approved");
-        return PassportPage();
-        // return PageContent(
-        //   cardNumberController: cardNumberController,
-        //   issueDateController: issueDateController,
-        //   expiryDateController: expiryDateController,
-        //   fullNameController: fullNameController,
-        //   birthDateController: birthDateController,
-        //   genderController: genderController,
-        //   maritalStatusController: maritalStatusController,
-        // );
+        return is_passport_Expired
+            ? Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: SizedBox(
+                    width: double.infinity,
+                    height: 280,
+                    child: Image.asset("assets/images/passport.jpg"),
+                  ),
+                ),
+
+                Center(
+                  child: Text(
+                    "A passport is your gateway to global travel and identity verification. Apply today to access international opportunities with ease",
+                  ),
+                ),
+
+                SizedBox(height: 15),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        // Navigator.pushNamed(context, 'passport_form');
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.redAccent,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        padding: EdgeInsets.symmetric(vertical: 16),
+                      ),
+                      child: Text(
+                        "Renew Passport",
+                        style: TextStyle(fontSize: 16),
+                      ),
+                    ),
+                  ),
+                ),
+
+                SizedBox(height: 10),
+                Text(
+                  "FAQ`s",
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                Divider(),
+                SizedBox(height: 10),
+                CollapsibleWidget(
+                  title: Questions[0],
+                  initiallyExpanded: false,
+                  animationDuration: Duration(milliseconds: 500),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [Text(Answers[0])],
+                  ),
+                ),
+                SizedBox(height: 10),
+                CollapsibleWidget(
+                  title: Questions[1],
+                  initiallyExpanded: false,
+                  animationDuration: Duration(milliseconds: 500),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [Text(Answers[1])],
+                  ),
+                ),
+                SizedBox(height: 10),
+                CollapsibleWidget(
+                  title: Questions[2],
+                  initiallyExpanded: false,
+                  animationDuration: Duration(milliseconds: 500),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [Text(Answers[2])],
+                  ),
+                ),
+                SizedBox(height: 10),
+                CollapsibleWidget(
+                  title: Questions[3],
+                  initiallyExpanded: false,
+                  animationDuration: Duration(milliseconds: 500),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [Text(Answers[3])],
+                  ),
+                ),
+                SizedBox(height: 10),
+                CollapsibleWidget(
+                  title: Questions[4],
+                  initiallyExpanded: false,
+                  animationDuration: Duration(milliseconds: 500),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [Text(Answers[4])],
+                  ),
+                ),
+                SizedBox(height: 10),
+                CollapsibleWidget(
+                  title: Questions[5],
+                  initiallyExpanded: false,
+                  animationDuration: Duration(milliseconds: 500),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [Text(Answers[5])],
+                  ),
+                ),
+                SizedBox(height: 10),
+              ],
+            )
+            : PassportPage(
+              passport_citizen_image_path: passport_citizen_image_path,
+              fullname: fullname,
+              gender: gender,
+              birthState: birthState,
+              birthdate: birthdate,
+              issuedDate: issuedDate,
+              expireDate: expireDate,
+              passport_number: passport_number,
+            );
       } else {
-        return Text("Please Wait For Approval");
+        // if it is requested
+        if (requestStatus == 'Requested') {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: SizedBox(
+                  width: double.infinity,
+                  height: 280,
+                  child: Image.asset("assets/images/passport.jpg"),
+                ),
+              ),
+
+              Center(
+                child: Text(
+                  "A passport is your gateway to global travel and identity verification. Apply today to access international opportunities with ease",
+                ),
+              ),
+
+              SizedBox(height: 15),
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    // onPressed: _submitForm,
+                    onPressed: () {},
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor:
+                          Colors.redAccent, // Background color (primary blue)
+                      foregroundColor: Colors.white, // Text color
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(
+                          8,
+                        ), // 8px border radius
+                      ),
+                      padding: EdgeInsets.symmetric(
+                        vertical: 16,
+                      ), // Optional: Adjust padding
+                    ),
+                    child: Text(
+                      "Your Passport is Getting Ready ..... ",
+                      style: TextStyle(
+                        fontSize: 16,
+                      ), // Optional: Adjust text size
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          );
+        } else {
+          return Center(
+            child: Text(
+              "Your Passport Has Been Declined For Security Issues Contact The Support Team Via Help Center !",
+              style: TextStyle(
+                fontSize: 26,
+                color: Colors.redAccent,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          );
+        }
+
+        // if it is decline
       }
     }
 
@@ -932,6 +1294,8 @@ class BirthCertificate extends StatelessWidget {
   final TextEditingController birthCertificate_gender;
   final TextEditingController birthCertificate_state;
   final TextEditingController birthCertificate_proffession;
+  final String birthCertificateScannedImagePath;
+  final bool isBirthCertificateExpired;
 
   const BirthCertificate({
     super.key,
@@ -943,6 +1307,8 @@ class BirthCertificate extends StatelessWidget {
     required this.birthCertificate_gender,
     required this.birthCertificate_state,
     required this.birthCertificate_proffession,
+    required this.birthCertificateScannedImagePath,
+    required this.isBirthCertificateExpired,
   });
 
   @override
@@ -950,22 +1316,147 @@ class BirthCertificate extends StatelessWidget {
     if (hasBirthCertificate) {
       // check the request status
       if (birthcertificate_requestStatus == 'Approved') {
-        // return Text("Birth Certificate Approved");
-        return BirthCertificate_Details(
-          birthCertificate_fullname: birthCertificate_fullname,
-          birthCertificate_gender: birthCertificate_gender,
-          birthCertificate_state: birthCertificate_state,
-          birthCertificate_proffession: birthCertificate_proffession,
-        );
-        // return PageContent(
-        //   cardNumberController: cardNumberController,
-        //   issueDateController: issueDateController,
-        //   expiryDateController: expiryDateController,
-        //   fullNameController: fullNameController,
-        //   birthDateController: birthDateController,
-        //   genderController: genderController,
-        //   maritalStatusController: maritalStatusController,
-        // );
+        return isBirthCertificateExpired
+            ? Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: SizedBox(
+                    width: double.infinity,
+                    height: 280,
+                    child: Image.asset("assets/images/birth_certificate.jpg"),
+                  ),
+                ),
+
+                Center(
+                  child: Text(
+                    "A birth certificate is your official proof of identity and citizenship. Secure yours today to access essential services and legal rights with confidence.",
+                  ),
+                ),
+
+                SizedBox(height: 5),
+                Center(
+                  child: Text(
+                    "Your Old Birth Certificate is Expired",
+                    style: TextStyle(
+                      color: Colors.redAccent,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                SizedBox(height: 15),
+
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      // onPressed: _submitForm,
+                      onPressed: () {
+                        Navigator.pushNamed(context, 'birth_certificate_form');
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor:
+                            Colors.redAccent, // Background color (primary blue)
+                        foregroundColor: Colors.white, // Text color
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(
+                            8,
+                          ), // 8px border radius
+                        ),
+                        padding: EdgeInsets.symmetric(
+                          vertical: 16,
+                        ), // Optional: Adjust padding
+                      ),
+                      child: Text(
+                        "Request New Birth Certificate",
+                        style: TextStyle(
+                          fontSize: 16,
+                        ), // Optional: Adjust text size
+                      ),
+                    ),
+                  ),
+                ),
+
+                SizedBox(height: 10),
+                Text(
+                  "FAQ`s",
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                Divider(),
+                SizedBox(height: 10),
+                CollapsibleWidget(
+                  title: birthcertificate_Questions[0],
+                  initiallyExpanded: false,
+                  animationDuration: Duration(milliseconds: 500),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [Text(birthcertificate_Answers[0])],
+                  ),
+                ),
+                SizedBox(height: 10),
+                CollapsibleWidget(
+                  title: birthcertificate_Questions[1],
+                  initiallyExpanded: false,
+                  animationDuration: Duration(milliseconds: 500),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [Text(birthcertificate_Answers[1])],
+                  ),
+                ),
+                SizedBox(height: 10),
+                CollapsibleWidget(
+                  title: birthcertificate_Questions[2],
+                  initiallyExpanded: false,
+                  animationDuration: Duration(milliseconds: 500),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [Text(birthcertificate_Answers[2])],
+                  ),
+                ),
+                SizedBox(height: 10),
+                CollapsibleWidget(
+                  title: birthcertificate_Questions[3],
+                  initiallyExpanded: false,
+                  animationDuration: Duration(milliseconds: 500),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [Text(birthcertificate_Answers[3])],
+                  ),
+                ),
+                SizedBox(height: 10),
+                CollapsibleWidget(
+                  title: birthcertificate_Questions[4],
+                  initiallyExpanded: false,
+                  animationDuration: Duration(milliseconds: 500),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [Text(birthcertificate_Answers[4])],
+                  ),
+                ),
+                SizedBox(height: 10),
+                CollapsibleWidget(
+                  title: birthcertificate_Questions[5],
+                  initiallyExpanded: false,
+                  animationDuration: Duration(milliseconds: 500),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [Text(birthcertificate_Answers[5])],
+                  ),
+                ),
+                SizedBox(height: 10),
+              ],
+            )
+            : BirthCertificate_Details(
+              birthCertificate_fullname: birthCertificate_fullname,
+              birthCertificate_gender: birthCertificate_gender,
+              birthCertificate_state: birthCertificate_state,
+              birthCertificate_proffession: birthCertificate_proffession,
+              birthCertificateScannedImagePath:
+                  birthCertificateScannedImagePath,
+            );
       } else {
         return Text("Please Wait For Approval");
       }
@@ -1094,12 +1585,14 @@ class BirthCertificate_Details extends StatelessWidget {
   final TextEditingController birthCertificate_gender;
   final TextEditingController birthCertificate_state;
   final TextEditingController birthCertificate_proffession;
+  final String birthCertificateScannedImagePath;
   const BirthCertificate_Details({
     super.key,
     required this.birthCertificate_fullname,
     required this.birthCertificate_gender,
     required this.birthCertificate_state,
     required this.birthCertificate_proffession,
+    required this.birthCertificateScannedImagePath,
   });
 
   @override

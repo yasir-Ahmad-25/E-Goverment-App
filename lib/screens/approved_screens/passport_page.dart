@@ -1,7 +1,25 @@
 import 'package:flutter/material.dart';
 
 class PassportPage extends StatelessWidget {
-  const PassportPage({super.key});
+  final String passport_citizen_image_path;
+  final String fullname;
+  final String gender;
+  final String birthState;
+  final String birthdate;
+  final String issuedDate;
+  final String expireDate;
+  final String passport_number;
+  const PassportPage({
+    super.key,
+    required this.passport_citizen_image_path,
+    required this.fullname,
+    required this.gender,
+    required this.birthState,
+    required this.birthdate,
+    required this.issuedDate,
+    required this.expireDate,
+    required this.passport_number,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -52,7 +70,9 @@ class PassportPage extends StatelessWidget {
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(4),
                       image: DecorationImage(
-                        image: AssetImage('assets/images/person.jpg'),
+                        image: NetworkImage(
+                          "http://192.168.100.10/egov_back/$passport_citizen_image_path",
+                        ),
                         fit: BoxFit.cover,
                       ),
                     ),
@@ -75,25 +95,29 @@ class PassportPage extends StatelessWidget {
               SizedBox(height: 30),
 
               // Data Rows
-              _buildDataRow('FULL NAME', 'Jaamac Geedi Ali'),
+              _buildDataRow('FULL NAME', fullname),
               Divider(),
               _buildDataRow('TYPE', 'Civilian Passport'),
               Divider(),
               // _buildDataRow('IGN', 'NATIONALITY'),
-              _buildDataRow('Gender', 'Male'),
+              _buildDataRow('Gender', gender),
               Divider(),
-              _buildDataRow('State', 'Banaadir'),
+              _buildDataRow('State', birthState),
               Divider(),
-              _buildDataRow('Birth Date', '29 JAN 2002'),
+              _buildDataRow('Birth Date', birthdate),
               Divider(),
               // _buildDataRow('JAKARTA', 'DNT CIP ISSUE'),
               // _buildDataRow('13 FEB 2023', 'DNT CEMPIRO'),
               // _buildDataRow('12 FEB 2023', 'ISSUE GIFICE'),
               // _buildDataRow('SOUTH JAKARTA', 'REC.NO.'),
-              _buildDataRow('Passport NUMBER', '1EDK03D093DNC8X'),
+              _buildDataRow('Passport NUMBER', passport_number),
               Divider(),
-              _buildDataRow('BRI', 'B2B3619'),
+              _buildDataRow('Issued Date', issuedDate),
               Divider(),
+              _buildDataRow('Expire Date', expireDate),
+              Divider(),
+              // _buildDataRow('BRI', 'B2B3619'),
+              // Divider(),
 
               // Barcode Section
               Image.asset(
