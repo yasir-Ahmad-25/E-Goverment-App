@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:e_govermenet/components/date_input_field.dart';
 import 'package:e_govermenet/components/document_uploader.dart';
 import 'package:e_govermenet/components/input_fields.dart';
 import 'package:e_govermenet/components/national_id_uploader.dart';
@@ -35,14 +36,18 @@ class _BusinessCertificateFormState extends State<BusinessCertificateForm> {
   bool showOtherField = false;
 
   final TextEditingController _Fullname = TextEditingController();
+  final TextEditingController _businessName = TextEditingController();
+  final TextEditingController _businessAddress = TextEditingController();
   final TextEditingController _phone = TextEditingController();
 
   final TextEditingController _proffesion = TextEditingController();
 
   String? _selectedState;
+  String? _selectedBusinessType;
   String? _selectedDocumentType;
   String? _selectedType;
   List<String> _states = [];
+  List<String> _business_types = [];
   List<String> _DocumentTypes = [];
 
   final List<String> _types = ["Employee", "Student", "Other"];
@@ -75,6 +80,42 @@ class _BusinessCertificateFormState extends State<BusinessCertificateForm> {
         }
       } else {
         throw Exception("Failed To Fetch States: ${response.statusCode}");
+      }
+    } catch (e) {
+      setState(() => _isLoading = false);
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Error: ${e.toString()}")));
+    }
+  }
+
+  Future<void> _loadBusinessTypes() async {
+    try {
+      final response = await http.get(
+        Uri.parse('http://192.168.100.10/egov_back/business_types'),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['status'] == 'success') {
+          // Assuming your states are in data['states'] as a list of names
+          // final state = data['states'];
+          List<dynamic> BusinessTypesJson = data['business_types'];
+          setState(() {
+            // _states = [state['state_name']];
+            _business_types =
+                BusinessTypesJson.map(
+                  (type) => type['business_type'] as String,
+                ).toList();
+            _isLoading = false;
+          });
+        } else {
+          throw Exception(data['message']);
+        }
+      } else {
+        throw Exception(
+          "Failed To Fetch Business Types: ${response.statusCode}",
+        );
       }
     } catch (e) {
       setState(() => _isLoading = false);
@@ -186,6 +227,13 @@ class _BusinessCertificateFormState extends State<BusinessCertificateForm> {
       request.fields['service_id'] = "2";
 
       request.fields['document_Type'] = _selectedDocumentType ?? '';
+      request.fields['business_name'] = _businessName.text ?? '';
+      request.fields['business_type'] = _selectedBusinessType ?? '';
+      request.fields['business_Address'] = _businessAddress.text ?? '';
+      request.fields['business_start_date'] = _dob!.toIso8601String().substring(
+        0,
+        10,
+      );
 
       if (_citizenImg != null) {
         request.files.add(
@@ -286,6 +334,7 @@ class _BusinessCertificateFormState extends State<BusinessCertificateForm> {
   @override
   void initState() {
     super.initState();
+    _loadBusinessTypes();
     _loadStates();
     _loadDocumentTypes();
     _loadCitizenData();
@@ -298,7 +347,7 @@ class _BusinessCertificateFormState extends State<BusinessCertificateForm> {
 
       body: SingleChildScrollView(
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Padding(
               padding: const EdgeInsets.all(8.0),
@@ -312,14 +361,25 @@ class _BusinessCertificateFormState extends State<BusinessCertificateForm> {
                 ),
               ),
             ),
-            Text("Upload your profile photo (passport-style)."),
+            Center(child: Text("Upload your profile photo (passport-style).")),
             const SizedBox(height: 20),
+
+            SizedBox(height: 20),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Text(
+                "Business Information",
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+            ),
+            Divider(),
+            SizedBox(height: 25),
 
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: InputFields(
                 input_controller: _Fullname,
-                inputlabel: Text("Fullname / Magacaaga Sadexan"),
+                inputlabel: Text("Business Owner / Magacaaga Milkiilaha"),
                 prefixIcon: Icon(Bootstrap.person),
                 suffixIcon: null,
                 isPassword: false,
@@ -329,7 +389,88 @@ class _BusinessCertificateFormState extends State<BusinessCertificateForm> {
             ),
 
             SizedBox(height: 5),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: InputFields(
+                input_controller: _businessName,
+                inputlabel: Text("Business Name / Magaca Ganacsiga"),
+                prefixIcon: Icon(Bootstrap.briefcase),
+                suffixIcon: null,
+                isPassword: false,
+                validator: null,
+                isEnabled: true,
+              ),
+            ),
 
+            SizedBox(height: 5),
+
+            _isLoading
+                ? const CircularProgressIndicator()
+                : Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.grey, width: 1.0),
+                      borderRadius: BorderRadius.circular(5.0),
+                    ),
+
+                    child: DropdownButton<String>(
+                      isExpanded: true,
+                      value: _selectedBusinessType,
+                      hint: Text(
+                        'Business Type (e.g : Solo , Partner , Corporate)',
+                      ),
+                      onChanged: (value) {
+                        setState(() => _selectedBusinessType = value);
+                        // widget.onChanged(value);
+                      },
+
+                      items:
+                          _business_types.map((type) {
+                            return DropdownMenuItem(
+                              value: type,
+                              child: Text(type),
+                            );
+                          }).toList(),
+                    ),
+                  ),
+                ),
+
+            SizedBox(height: 5),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: InputFields(
+                input_controller: _businessAddress,
+                inputlabel: Text("Business Address / Goobta Ganacsiga"),
+                prefixIcon: Icon(Bootstrap.briefcase),
+                suffixIcon: null,
+                isPassword: false,
+                validator: null,
+                isEnabled: true,
+              ),
+            ),
+
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8.0),
+              child: DateInputField(
+                selectedDate: _dob,
+                onChanged: (date) => setState(() => _dob = date),
+                labelText: 'Business Start Date',
+                enabled: true,
+              ),
+            ),
+
+            SizedBox(height: 20),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Text(
+                "Attach Related Documents",
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+            ),
+            Divider(),
+            SizedBox(height: 10),
             _isLoading
                 ? const CircularProgressIndicator()
                 : Padding(
@@ -361,6 +502,7 @@ class _BusinessCertificateFormState extends State<BusinessCertificateForm> {
                   ),
                 ),
             SizedBox(height: 10),
+
             DocumentUploader(
               onFileSelected: (file) {
                 if (file != null) {
@@ -417,7 +559,8 @@ class _BusinessCertificateFormState extends State<BusinessCertificateForm> {
             SizedBox(height: 5),
             Padding(
               padding: const EdgeInsets.all(8.0),
-              child: SizedBox(
+              child: Container(
+                margin: EdgeInsets.only(bottom: 45),
                 width: double.infinity,
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,

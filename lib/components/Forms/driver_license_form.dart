@@ -42,9 +42,11 @@ class _DriverLicenseFormState extends State<DriverLicenseForm> {
   final TextEditingController _proffesion = TextEditingController();
 
   String? _selectedState;
+  String? _selectedCarType;
   String? _selectedDocumentType;
   String? _selectedType;
   List<String> _states = [];
+  List<String> _car_types = [];
   List<String> _DocumentTypes = [];
 
   final List<String> _types = ["Employee", "Student", "Other"];
@@ -164,6 +166,38 @@ class _DriverLicenseFormState extends State<DriverLicenseForm> {
     }
   }
 
+  Future<void> _loadCarTypes() async {
+    try {
+      final response = await http.get(
+        Uri.parse('http://192.168.100.10/egov_back/car_types'),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['status'] == 'success') {
+          // Assuming your states are in data['states'] as a list of names
+          // final state = data['states'];
+          List<dynamic> CarTypesJson = data['car_types'];
+          setState(() {
+            // _states = [state['state_name']];
+            _car_types =
+                CarTypesJson.map((type) => type['name'] as String).toList();
+            _isLoading = false;
+          });
+        } else {
+          throw Exception(data['message']);
+        }
+      } else {
+        throw Exception("Failed To Fetch Car Types: ${response.statusCode}");
+      }
+    } catch (e) {
+      setState(() => _isLoading = false);
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Error: ${e.toString()}")));
+    }
+  }
+
   void _submitForm() async {
     final prefs = await SharedPreferences.getInstance();
     final citizenId = prefs.getInt('user_id');
@@ -189,7 +223,7 @@ class _DriverLicenseFormState extends State<DriverLicenseForm> {
 
       request.fields['document_Type'] = _selectedDocumentType ?? '';
 
-      request.fields['car_Type'] = _car_Type.text ?? '';
+      request.fields['car_Type'] = _selectedCarType ?? '';
       request.fields['plate_number'] = _plate_number.text ?? '';
       request.fields['vehicle_color'] = _vehicle_color.text ?? '';
 
@@ -295,6 +329,7 @@ class _DriverLicenseFormState extends State<DriverLicenseForm> {
     _loadStates();
     _loadDocumentTypes();
     _loadCitizenData();
+    _loadCarTypes();
   }
 
   @override
@@ -333,20 +368,39 @@ class _DriverLicenseFormState extends State<DriverLicenseForm> {
                 isEnabled: false,
               ),
             ),
-
             SizedBox(height: 5),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: InputFields(
-                input_controller: _car_Type,
-                inputlabel: Text("Car Type / Nooca Gaadhiga"),
-                prefixIcon: Icon(Bootstrap.car_front),
-                suffixIcon: null,
-                isPassword: false,
-                validator: null,
-                isEnabled: true,
-              ),
-            ),
+
+            _isLoading
+                ? const CircularProgressIndicator()
+                : Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.grey, width: 1.0),
+                      borderRadius: BorderRadius.circular(5.0),
+                    ),
+
+                    child: DropdownButton<String>(
+                      isExpanded: true,
+                      value: _selectedCarType,
+                      hint: Text('Car Type e.g (Private , Moto , Etc)'),
+                      onChanged: (value) {
+                        setState(() => _selectedCarType = value);
+                        // widget.onChanged(value);
+                      },
+
+                      items:
+                          _car_types.map((type) {
+                            return DropdownMenuItem(
+                              value: type,
+                              child: Text(type),
+                            );
+                          }).toList(),
+                    ),
+                  ),
+                ),
+
             SizedBox(height: 5),
             Padding(
               padding: const EdgeInsets.all(8.0),
@@ -451,7 +505,7 @@ class _DriverLicenseFormState extends State<DriverLicenseForm> {
                     ), // Optional: Adjust padding
                   ),
                   child: Text(
-                    "Request Business Certification",
+                    "Request Driver License",
 
                     style: TextStyle(
                       fontSize: 16,

@@ -101,7 +101,11 @@ class _ServiceDetailPageState extends State<ServiceDetailPage> {
 
   final TextEditingController _business_fullname = TextEditingController();
   final TextEditingController _business_name = TextEditingController();
+  final TextEditingController _business_address = TextEditingController();
+  final TextEditingController _business_type = TextEditingController();
+  final TextEditingController _business_start_date = TextEditingController();
 
+  String _businessCertificateScannedImagePath = "";
   // ================================== BUSINESS CERTIFICATE SECTION END ===================================
 
   List<String> driverLicenseQuestions = [
@@ -122,19 +126,34 @@ class _ServiceDetailPageState extends State<ServiceDetailPage> {
     "If your license is lost or stolen, report it to the authorities immediately and request a replacement by submitting the required details and identification.",
   ];
 
+  final String _driver_Citizen_imagePath = "";
+
   bool hasNationalId = false;
   bool hasPassportId = false; // For Passport
   bool hasBirthCertificate = false; // For Birth Certificate
+  bool hasBusinessCertificate = false; // For Business Certificate
+  bool hasDriverLicense = false; // For Driver License
 
   String RequesStatus = "";
+  String _business_requestStatus = "";
+  String _driverLicense_requestStatus = "";
+
   String National_Id_Card_Citizen_imagePath = "";
   bool is_National_Id_Card_Expired = false;
   bool is_Passport_Expired = false;
   bool is_Certificate_Expired = false;
+  bool is_Business_Expired = false;
 
   // Create controllers for each field
   final TextEditingController _cardNumberController = TextEditingController();
   final TextEditingController _issueDateController = TextEditingController();
+
+  final TextEditingController _plateNumberController = TextEditingController();
+  final TextEditingController _DriverLicense_issueDateController =
+      TextEditingController();
+  final TextEditingController _DriverLicense_expiryDateController =
+      TextEditingController();
+
   final TextEditingController _expiryDateController = TextEditingController();
   final TextEditingController _fullNameController = TextEditingController();
   final TextEditingController _birthDateController = TextEditingController();
@@ -382,6 +401,134 @@ class _ServiceDetailPageState extends State<ServiceDetailPage> {
     }
   }
 
+  Future<void> _loadBusinessCertificateData() async {
+    final prefs = await SharedPreferences.getInstance();
+    final citizenId = prefs.getInt('user_id');
+
+    try {
+      var response = await http.get(
+        Uri.parse(
+          'http://192.168.100.10/egov_back/business_certificate/$citizenId',
+        ),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['status'] == 'success' &&
+            data['business_certificate_data'] != null &&
+            data['business_certificate_data'].isNotEmpty) {
+          final businessCertificateData = data['business_certificate_data'][0];
+
+          // Check if the national_id_number is not "0" or empty
+          if (isPassportId(
+            businessCertificateData['scanned_business_certificate'],
+          )) {
+            // check if national id is Expired or Valid
+            if (businessCertificateData['business_status'] == 'Expired') {
+              setState(() {
+                is_Business_Expired = true;
+              });
+            }
+
+            if (businessCertificateData['citizen_image'] != null &&
+                businessCertificateData['citizen_image']
+                    .toString()
+                    .isNotEmpty) {
+              _businessCertificateScannedImagePath =
+                  businessCertificateData['scanned_business_certificate'];
+            } else {
+              print("No image path found in Business data.");
+            }
+
+            setState(() {
+              hasBusinessCertificate = true;
+              _business_requestStatus =
+                  businessCertificateData['business_status'];
+
+              _business_fullname.text = businessCertificateData['fullname'];
+              _business_name.text = businessCertificateData['business_name'];
+              _business_address.text =
+                  businessCertificateData['business_Address'];
+              _business_type.text = businessCertificateData['business_type'];
+              _business_start_date.text = businessCertificateData['Start_Date'];
+            });
+          } else {
+            setState(() {
+              hasBusinessCertificate = false;
+            });
+            print("Business Certificate not approved or invalid.");
+          }
+        } else {
+          print("No Business data found.");
+          setState(() {
+            hasBirthCertificate = false;
+          });
+        }
+      } else {
+        throw Exception("Failed to load Business Ceritificate data.");
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Error: ${e.toString()}")));
+    }
+  }
+
+  Future<void> _loadDriverLicenseData() async {
+    final prefs = await SharedPreferences.getInstance();
+    final citizenId = prefs.getInt('user_id');
+
+    try {
+      var response = await http.get(
+        Uri.parse('http://192.168.100.10/egov_back/driver_license/$citizenId'),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['status'] == 'success' &&
+            data['driver_License_Data'] != null &&
+            data['driver_License_Data'].isNotEmpty) {
+          final driverLicenseData = data['driver_License_Data'][0];
+
+          // Check if the national_id_number is not "0" or empty
+          if (isDriverPlateNumberValid(driverLicenseData['plate_number'])) {
+            // if (driver_License_Data['license_status'] == 'Expired') {
+            //   setState(() {
+            //     is_National_Id_Card_Expired = true;
+            //   });
+            // }
+
+            _plateNumberController.text = driverLicenseData['plate_number'];
+            _DriverLicense_issueDateController.text =
+                driverLicenseData['issued_At'];
+            _DriverLicense_expiryDateController.text =
+                driverLicenseData['Expire_At'];
+            _driverLicense_requestStatus = driverLicenseData['license_status'];
+            setState(() {
+              hasDriverLicense = true;
+            });
+          } else {
+            setState(() {
+              hasDriverLicense = false;
+            });
+            print("Driver License not approved or invalid.");
+          }
+        } else {
+          print("No Driver License data found.");
+          setState(() {
+            hasDriverLicense = false;
+          });
+        }
+      } else {
+        throw Exception("Failed to load Driver License data.");
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Error: ${e.toString()}")));
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -389,6 +536,8 @@ class _ServiceDetailPageState extends State<ServiceDetailPage> {
     _loadNationalIdCardData();
     _loadPassportData();
     _loadBirthCertificateData();
+    _loadBusinessCertificateData();
+    _loadDriverLicenseData();
 
     // Set initial text values (replace with your data)
     _cardNumberController.text = '1234 5678 9012 3456';
@@ -414,6 +563,10 @@ class _ServiceDetailPageState extends State<ServiceDetailPage> {
   }
 
   bool isValidNationalId(String? id) {
+    return id != null && id != '0' && id.trim().isNotEmpty;
+  }
+
+  bool isDriverPlateNumberValid(String? id) {
     return id != null && id != '0' && id.trim().isNotEmpty;
   }
 
@@ -485,28 +638,34 @@ class _ServiceDetailPageState extends State<ServiceDetailPage> {
 
             if (widget.service.serId == 4) ...[
               Business(
-                hasBusiness: true,
-                Business_requestStatus: "Approved",
+                hasBusiness: hasBusinessCertificate,
+                Business_requestStatus: _business_requestStatus,
                 BusinessQuestions: BusinessQuestions,
                 BusinessAnswers: BusinessAnswers,
                 business_fullname: _business_fullname,
                 business_name: _business_name,
+                business_address: _business_address,
+                business_type: _business_type,
+                business_start_Date: _business_start_date,
               ),
             ],
 
             if (widget.service.serId == 5) ...[
               DrivingLicense(
-                cardNumberController: _cardNumberController,
-                issueDateController: _issueDateController,
-                expiryDateController: _expiryDateController,
+                cardNumberController: _plateNumberController,
+                issueDateController: _DriverLicense_issueDateController,
+                expiryDateController: _DriverLicense_issueDateController,
+
                 fullNameController: _fullNameController,
                 birthDateController: _birthDateController,
                 genderController: _genderController,
                 maritalStatusController: _maritalStatusController,
-                hasDrivingLicense: true,
+                hasDrivingLicense: hasDriverLicense,
                 DriverLicenseQuestions: driverLicenseQuestions,
                 DriverLicenseAnswers: driverLicenseAnswers,
-                driverLicense_requestStatus: "Approved",
+                driverLicense_requestStatus: _driverLicense_requestStatus,
+                Driver_citizen_image_path: _driver_Citizen_imagePath,
+                plateNumberController: _plateNumberController,
               ),
             ],
             if (widget.service.serId == 6) ...[
@@ -1657,6 +1816,10 @@ class Business extends StatelessWidget {
   final TextEditingController business_fullname;
   final TextEditingController business_name;
 
+  final TextEditingController business_address;
+  final TextEditingController business_type;
+  final TextEditingController business_start_Date;
+
   const Business({
     super.key,
     required this.hasBusiness,
@@ -1665,6 +1828,9 @@ class Business extends StatelessWidget {
     required this.BusinessAnswers,
     required this.business_fullname,
     required this.business_name,
+    required this.business_address,
+    required this.business_type,
+    required this.business_start_Date,
   });
 
   @override
@@ -1676,18 +1842,22 @@ class Business extends StatelessWidget {
         return BusinessDetails(
           business_fullname: business_fullname,
           business_name: business_name,
+          business_address: business_address,
+          business_type: business_type,
+          business_start_Date: business_start_Date,
         );
-        // return PageContent(
-        //   cardNumberController: cardNumberController,
-        //   issueDateController: issueDateController,
-        //   expiryDateController: expiryDateController,
-        //   fullNameController: fullNameController,
-        //   birthDateController: birthDateController,
-        //   genderController: genderController,
-        //   maritalStatusController: maritalStatusController,
-        // );
       } else {
-        return Text("Please Wait For Approval");
+        if (Business_requestStatus == "Requested") {
+          return CertificateWaitingWidget(certificateType: 'Business');
+        } else if (Business_requestStatus == "Expired") {
+          return CertificateDeclinedWidget(
+            reason: "Due To Valid Documents",
+            certificateType: '',
+            onResubmit: () {
+              Navigator.pushNamed(context, 'business_form');
+            },
+          );
+        }
       }
     }
 
@@ -1813,10 +1983,17 @@ class BusinessDetails extends StatelessWidget {
   final TextEditingController business_fullname;
   final TextEditingController business_name;
 
+  final TextEditingController business_address;
+  final TextEditingController business_type;
+  final TextEditingController business_start_Date;
+
   const BusinessDetails({
     super.key,
     required this.business_fullname,
     required this.business_name,
+    required this.business_address,
+    required this.business_type,
+    required this.business_start_Date,
   });
 
   @override
@@ -1850,7 +2027,125 @@ class BusinessDetails extends StatelessWidget {
             icon: FontAwesomeIcons.businessTime,
             label: 'Business Name',
           ),
+          const SizedBox(height: 16),
+          _buildTextField(
+            controller: business_address,
+            icon: FontAwesomeIcons.addressBook,
+            label: 'Business Address',
+          ),
+          const SizedBox(height: 16),
+          _buildTextField(
+            controller: business_type,
+            icon: FontAwesomeIcons.typo3,
+            label: 'Business Type',
+          ),
+          const SizedBox(height: 16),
+          _buildTextField(
+            controller: business_start_Date,
+            icon: FontAwesomeIcons.calendar,
+            label: 'Business Start Date',
+          ),
         ],
+      ),
+    );
+  }
+}
+
+class CertificateWaitingWidget extends StatelessWidget {
+  final String
+  certificateType; // e.g., "Business", "Driver License", "Birth Certificate"
+
+  const CertificateWaitingWidget({super.key, required this.certificateType});
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      color: Colors.orange[100],
+      margin: const EdgeInsets.all(16),
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.hourglass_empty, size: 60, color: Colors.orange),
+            const SizedBox(height: 16),
+            Text(
+              'Waiting for $certificateType Certificate Approval',
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Your $certificateType certificate application is under review. You will be notified once it is approved.',
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class CertificateDeclinedWidget extends StatelessWidget {
+  final String certificateType;
+  final String reason;
+  final VoidCallback onResubmit; // Generic callback function
+
+  const CertificateDeclinedWidget({
+    super.key,
+    required this.certificateType,
+    required this.reason,
+    required this.onResubmit,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      color: Colors.red[100],
+      margin: const EdgeInsets.all(16),
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.cancel, size: 60, color: Colors.red),
+            const SizedBox(height: 16),
+            Text(
+              '$certificateType Certificate Declined',
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8),
+            Text('Reason: $reason', textAlign: TextAlign.center),
+            const SizedBox(height: 12),
+            const Text(
+              'Please review the reason and resubmit your application.',
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 15),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: onResubmit,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                  ),
+                  child: Text(
+                    "Resubmit $certificateType Certificate",
+                    style: const TextStyle(fontSize: 16),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -1866,11 +2161,6 @@ class DrivingLicense extends StatelessWidget {
   final List<String> DriverLicenseQuestions;
   final List<String> DriverLicenseAnswers;
 
-  // final TextEditingController driver_fullname;
-  // final TextEditingController LicensePlateNumber;
-  // final TextEditingController vehicleType;
-  // final TextEditingController vehicleColor;
-
   final TextEditingController cardNumberController;
   final TextEditingController issueDateController;
   final TextEditingController expiryDateController;
@@ -1878,6 +2168,8 @@ class DrivingLicense extends StatelessWidget {
   final TextEditingController birthDateController;
   final TextEditingController genderController;
   final TextEditingController maritalStatusController;
+  final String Driver_citizen_image_path;
+  final TextEditingController plateNumberController;
 
   const DrivingLicense({
     super.key,
@@ -1892,6 +2184,8 @@ class DrivingLicense extends StatelessWidget {
     required this.birthDateController,
     required this.genderController,
     required this.maritalStatusController,
+    required this.Driver_citizen_image_path,
+    required this.plateNumberController,
   });
 
   @override
@@ -1901,20 +2195,39 @@ class DrivingLicense extends StatelessWidget {
       if (driverLicense_requestStatus == 'Approved') {
         return Column(
           children: [
-            DriverLicenseIDStructure(),
+            DriverLicenseIDStructure(
+              Driver_citizen_image_path: Driver_citizen_image_path,
+              plateNumber: plateNumberController.text,
+              Fullname: fullNameController.text,
+              Gender: genderController.text,
+              DOB: birthDateController.text,
+              issued_At: issueDateController.text,
+              Expire_At: expiryDateController.text,
+            ),
             DriverLicenseDetails(
-              cardNumberController: cardNumberController,
+              cardNumberController: plateNumberController,
               issueDateController: issueDateController,
               expiryDateController: expiryDateController,
               fullNameController: fullNameController,
               birthDateController: birthDateController,
               genderController: genderController,
               maritalStatusController: maritalStatusController,
+              ExpireDateController: expiryDateController,
             ),
           ],
         );
       } else {
-        return Text("Please Wait For Approval");
+        if (driverLicense_requestStatus == "Requested") {
+          return CertificateWaitingWidget(certificateType: 'Driver License');
+        } else {
+          return CertificateDeclinedWidget(
+            reason: "Due To Road Validation",
+            certificateType: 'Driver License',
+            onResubmit: () {
+              Navigator.pushNamed(context, 'driver_License_form');
+            },
+          );
+        }
       }
     }
 
@@ -2037,7 +2350,25 @@ class DrivingLicense extends StatelessWidget {
 }
 
 class DriverLicenseIDStructure extends StatelessWidget {
-  const DriverLicenseIDStructure({super.key});
+  final String Driver_citizen_image_path;
+
+  final String plateNumber;
+  final String Fullname;
+  final String Gender;
+  final String DOB;
+  final String issued_At;
+  final String Expire_At;
+
+  const DriverLicenseIDStructure({
+    super.key,
+    required this.Driver_citizen_image_path,
+    required this.plateNumber,
+    required this.Fullname,
+    required this.Gender,
+    required this.DOB,
+    required this.issued_At,
+    required this.Expire_At,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -2112,8 +2443,8 @@ class DriverLicenseIDStructure extends StatelessWidget {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        _buildInfoItem("Identity No:", "90294672"),
-                        _buildInfoItem("Full Name:", "Yasir Ahmad Yahya"),
+                        _buildInfoItem("Identity No:", plateNumber),
+                        _buildInfoItem("Full Name:", Fullname),
                       ],
                     ),
 
@@ -2123,8 +2454,8 @@ class DriverLicenseIDStructure extends StatelessWidget {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        _buildInfoItem("Gender:", "Male"),
-                        _buildInfoItem("DOB:", "01/01/1990"),
+                        _buildInfoItem("Gender:", Gender),
+                        _buildInfoItem("DOB:", DOB),
                       ],
                     ),
 
@@ -2134,8 +2465,8 @@ class DriverLicenseIDStructure extends StatelessWidget {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        _buildInfoItem("Issued:", "01/01/2020"),
-                        _buildInfoItem("Expires:", "01/01/2030"),
+                        _buildInfoItem("Issued:", issued_At),
+                        _buildInfoItem("Expires:", Expire_At),
                       ],
                     ),
                   ],
@@ -2149,8 +2480,11 @@ class DriverLicenseIDStructure extends StatelessWidget {
                 height: 120,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(8),
-                  image: const DecorationImage(
-                    image: AssetImage("assets/images/person.jpg"),
+                  image: DecorationImage(
+                    // image: AssetImage("assets/images/person.jpg"),
+                    image: NetworkImage(
+                      "http://192.168.100.10/egov_back/$Driver_citizen_image_path",
+                    ),
                     fit: BoxFit.cover,
                   ),
                 ),
@@ -2179,6 +2513,7 @@ class DriverLicenseIDStructure extends StatelessWidget {
 class DriverLicenseDetails extends StatelessWidget {
   final TextEditingController cardNumberController;
   final TextEditingController issueDateController;
+  final TextEditingController ExpireDateController;
   final TextEditingController expiryDateController;
   final TextEditingController fullNameController;
   final TextEditingController birthDateController;
@@ -2193,6 +2528,7 @@ class DriverLicenseDetails extends StatelessWidget {
     required this.birthDateController,
     required this.genderController,
     required this.maritalStatusController,
+    required this.ExpireDateController,
   });
 
   @override
@@ -2201,20 +2537,26 @@ class DriverLicenseDetails extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          "Card-Details",
+          "License - Details",
           style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
         ),
         Divider(),
         _buildTextField(
           controller: cardNumberController,
           icon: Icons.credit_card,
-          label: 'Card Number',
+          label: 'Plate Number',
         ),
         const SizedBox(height: 16),
         _buildTextField(
           controller: issueDateController,
           icon: Icons.calendar_today,
           label: 'Date of Issue',
+        ),
+        const SizedBox(height: 16),
+        _buildTextField(
+          controller: ExpireDateController,
+          icon: Icons.calendar_today,
+          label: 'Date of Expire',
         ),
         const SizedBox(height: 16),
         _buildTextField(
