@@ -153,7 +153,7 @@ class _ServiceDetailPageState extends State<ServiceDetailPage> {
       TextEditingController();
   final TextEditingController _DriverLicense_expiryDateController =
       TextEditingController();
-
+  String Driver_citizen_image_path = "";
   final TextEditingController _expiryDateController = TextEditingController();
   final TextEditingController _fullNameController = TextEditingController();
   final TextEditingController _birthDateController = TextEditingController();
@@ -504,6 +504,7 @@ class _ServiceDetailPageState extends State<ServiceDetailPage> {
             _DriverLicense_expiryDateController.text =
                 driverLicenseData['Expire_At'];
             _driverLicense_requestStatus = driverLicenseData['license_status'];
+            Driver_citizen_image_path = driverLicenseData['citizen_image'];
             setState(() {
               hasDriverLicense = true;
             });
