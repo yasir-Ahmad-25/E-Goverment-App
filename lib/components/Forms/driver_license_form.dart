@@ -47,6 +47,13 @@ class _DriverLicenseFormState extends State<DriverLicenseForm> {
   String? _selectedType;
   List<String> _states = [];
   List<String> _car_types = [];
+  List<String> _car_tax_amounts = [];
+  List<String> _car_payment_times = [];
+  int? _selectedCarIndex;
+
+  String carTaxAmount = "";
+  String TaxPaymentTime_based_on_car = "";
+
   List<String> _DocumentTypes = [];
 
   final List<String> _types = ["Employee", "Student", "Other"];
@@ -182,6 +189,14 @@ class _DriverLicenseFormState extends State<DriverLicenseForm> {
             // _states = [state['state_name']];
             _car_types =
                 CarTypesJson.map((type) => type['name'] as String).toList();
+            _car_tax_amounts =
+                CarTypesJson.map(
+                  (amount) => amount['tax_amount'] as String,
+                ).toList();
+            _car_payment_times =
+                CarTypesJson.map(
+                  (paymentTime) => paymentTime['Payment_Timing'] as String,
+                ).toList();
             _isLoading = false;
           });
         } else {
@@ -226,6 +241,12 @@ class _DriverLicenseFormState extends State<DriverLicenseForm> {
       request.fields['car_Type'] = _selectedCarType ?? '';
       request.fields['plate_number'] = _plate_number.text ?? '';
       request.fields['vehicle_color'] = _vehicle_color.text ?? '';
+
+
+      // unnecessary requests
+      request.fields['amount'] = carTaxAmount ?? '0';
+      request.fields['due_date'] = TaxPaymentTime_based_on_car ?? '';
+
 
       if (_citizenImg != null) {
         request.files.add(
@@ -386,7 +407,20 @@ class _DriverLicenseFormState extends State<DriverLicenseForm> {
                       value: _selectedCarType,
                       hint: Text('Car Type e.g (Private , Moto , Etc)'),
                       onChanged: (value) {
-                        setState(() => _selectedCarType = value);
+                        setState(() {
+                          _selectedCarType = value;
+                          _selectedCarIndex = _car_types.indexOf(value!);
+
+                          // Fill tax amount and payment timing based on selection
+                          carTaxAmount = _car_tax_amounts[_selectedCarIndex!].toString();
+                          TaxPaymentTime_based_on_car =
+                              _car_payment_times[_selectedCarIndex!];
+
+                          print("Tax Amount is: $carTaxAmount");
+                          print(
+                            "Payment Timing is: $TaxPaymentTime_based_on_car",
+                          );
+                        });
                         // widget.onChanged(value);
                       },
 

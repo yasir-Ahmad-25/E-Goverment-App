@@ -11,6 +11,8 @@ class DriverLicenseDetailsTax extends StatelessWidget {
   final TextEditingController genderController;
   final TextEditingController maritalStatusController;
   final List<Map<String, dynamic>> paymentMethods;
+  final void Function()? callbackMethod;
+  final String Taxamount;
   const DriverLicenseDetailsTax({
     super.key,
     required this.cardNumberController,
@@ -22,6 +24,8 @@ class DriverLicenseDetailsTax extends StatelessWidget {
     required this.maritalStatusController,
     required this.ExpireDateController,
     required this.paymentMethods,
+    required this.Taxamount,
+    required this.callbackMethod,
   });
 
   @override
@@ -59,7 +63,7 @@ class DriverLicenseDetailsTax extends StatelessWidget {
             alignment: Alignment.bottomRight,
             child: Text(
               textAlign: TextAlign.right,
-              "\$15",
+              "\$$Taxamount",
               style: TextStyle(
                 fontSize: 28,
                 color: Colors.redAccent,
@@ -97,6 +101,7 @@ class DriverLicenseDetailsTax extends StatelessWidget {
                         ),
                         child: PaymentOptionsBottomSheet(
                           paymentMethods: paymentMethods,
+                          callbackMethod: callbackMethod,
                         ),
                       ),
                 );
@@ -143,7 +148,12 @@ Widget _buildTextField({
 
 class PaymentOptionsBottomSheet extends StatelessWidget {
   final List<Map<String, dynamic>> paymentMethods;
-  const PaymentOptionsBottomSheet({super.key, required this.paymentMethods});
+  final void Function()? callbackMethod;
+  const PaymentOptionsBottomSheet({
+    super.key,
+    required this.paymentMethods,
+    this.callbackMethod,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -196,25 +206,26 @@ class PaymentOptionsBottomSheet extends StatelessWidget {
                   child: ListTile(
                     leading: Icon(Icons.payment, color: Colors.redAccent),
                     title: Text(method['payment']),
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder:
-                              (_) => PaymentSuccessPage(
-                                message:
-                                    "Thank you! Your payment has been processed.",
-                                buttonText: "Go Home",
-                                onButtonPressed: () {
-                                  Navigator.popUntil(
-                                    context,
-                                    (route) => route.isFirst,
-                                  );
-                                },
-                              ),
-                        ),
-                      );
-                    },
+                    onTap: callbackMethod,
+                    // onTap: () {
+                    //   Navigator.push(
+                    //     context,
+                    //     MaterialPageRoute(
+                    //       builder:
+                    //           (_) => PaymentSuccessPage(
+                    //             message:
+                    //                 "Thank you! Your payment has been processed.",
+                    //             buttonText: "Go Home",
+                    //             onButtonPressed: () {
+                    //               Navigator.popUntil(
+                    //                 context,
+                    //                 (route) => route.isFirst,
+                    //               );
+                    //             },
+                    //           ),
+                    //     ),
+                    //   );
+                    // },
                   ),
                 );
               },
