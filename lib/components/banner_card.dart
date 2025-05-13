@@ -9,12 +9,17 @@ class BannerCard extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 12.0),
       child: Container(
         width: double.infinity,
-        height: 120,
+        height: 250,
         decoration: BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage("assets/images/banner_img_2.jpeg"),
+            fit: BoxFit.cover,
+          ),
+
           color: Colors.grey,
           borderRadius: BorderRadius.circular(8),
         ),
-        // child: Image.asset(""),
+        // child:,
       ),
     );
   }

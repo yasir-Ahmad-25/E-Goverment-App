@@ -341,6 +341,9 @@ class ServiceIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final iconData = getBootstrapIcon(service.serviceIcon);
+    final color = hexToColor(service.colorHex);
+
     return GestureDetector(
       onTap: () {
         Navigator.push(
@@ -357,9 +360,9 @@ class ServiceIcon extends StatelessWidget {
             height: 50,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(50),
-              color: Colors.amber,
+              color: color,
             ),
-            child: Icon(Icons.miscellaneous_services),
+            child: Icon(iconData, color: Colors.white),
           ),
           SizedBox(height: 5),
           Text(
@@ -529,13 +532,14 @@ class NavBarIcon extends StatelessWidget {
   }
 }
 
-// Model
 class GovService {
   final int serId;
   final String name;
   final String descriptions;
   final double price;
   final String status;
+  final String serviceIcon; // <-- add this
+  final String colorHex;
 
   GovService({
     required this.serId,
@@ -543,6 +547,8 @@ class GovService {
     required this.descriptions,
     required this.price,
     required this.status,
+    required this.serviceIcon,
+    required this.colorHex,
   });
 
   factory GovService.fromJson(Map<String, dynamic> json) {
@@ -552,6 +558,29 @@ class GovService {
       descriptions: json['descriptions'],
       price: double.parse(json['price']),
       status: json['status'],
+      serviceIcon: json['service_icon'], // <-- add this
+      colorHex: json['service_bg_color'],
     );
   }
+}
+
+IconData getBootstrapIcon(String iconName) {
+  switch (iconName) {
+    case 'Bootstrap.card_heading':
+      return Bootstrap.card_heading;
+    case 'Bootstrap.passport':
+      return Bootstrap.passport;
+    case 'Bootstrap.journal_text':
+      return Bootstrap.journal_text;
+    case 'Bootstrap.credit_card':
+      return Bootstrap.credit_card;
+    default:
+      return Icons.help_outline; // fallback icon
+  }
+}
+
+Color hexToColor(String hex) {
+  hex = hex.replaceAll('#', '');
+  if (hex.length == 6) hex = 'FF$hex'; // add full opacity if missing
+  return Color(int.parse(hex, radix: 16));
 }
