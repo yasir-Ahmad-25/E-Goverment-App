@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:e_govermenet/components/banner_card.dart';
+import 'package:e_govermenet/components/services/api_constants.dart';
 import 'package:e_govermenet/screens/service_detailed_page.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -8,6 +9,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'package:icons_plus/icons_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:shimmer/shimmer.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -97,7 +99,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
       // Fetch citizen data
       final response = await http.get(
-        Uri.parse('http://192.168.100.10/egov_back/citizen/$citizenId'),
+        // Uri.parse('http://192.168.100.10/egov_back/citizen/$citizenId'),
+        Uri.parse(ApiConstants.getCitizenData(citizenId)),
       );
 
       if (response.statusCode == 200) {
@@ -111,12 +114,20 @@ class _HomeScreenState extends State<HomeScreen> {
               _isActive = true;
             }
 
-            _isLoading = false;
+            setState(() {
+              _isLoading = false;
+            });
           });
         } else {
+          setState(() {
+            _isLoading = false;
+          });
           throw Exception(data['message']);
         }
       } else {
+        setState(() {
+          _isLoading = false;
+        });
         throw Exception("Server error: ${response.statusCode}");
       }
     } catch (e) {
@@ -161,6 +172,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         title: Text("Welcome , $_fullName 🔥", style: TextStyle(fontSize: 16)),
         actions: [
           IconButton(
@@ -174,9 +186,83 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
       ),
       body:
-          _isActive
-              ? HomeContent(service: _services)
-              : PendingUser(gender: _gender.toString(), function: _logout),
+          _isLoading
+              ? Shimmer.fromColors(
+                baseColor: Colors.grey.shade300,
+                highlightColor: Colors.grey.shade100,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // BannerCard shimmer
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8.0,
+                        vertical: 12.0,
+                      ),
+                      child: Container(
+                        width: double.infinity,
+                        height: 250,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                    ),
+
+                    // "Services" title shimmer
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12.0,
+                        vertical: 8,
+                      ),
+                      child: Container(
+                        width: 100,
+                        height: 20,
+                        color: Colors.white,
+                      ),
+                    ),
+
+                    // Grid shimmer (3x2 fake services)
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: GridView.builder(
+                          itemCount: 6,
+                          gridDelegate:
+                              SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: 3,
+                                mainAxisSpacing: 10,
+                                crossAxisSpacing: 10,
+                              ),
+                          itemBuilder:
+                              (_, __) => Column(
+                                children: [
+                                  Container(
+                                    width: 50,
+                                    height: 50,
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(50),
+                                    ),
+                                  ),
+                                  SizedBox(height: 5),
+                                  Container(
+                                    width: 40,
+                                    height: 10,
+                                    color: Colors.white,
+                                  ),
+                                ],
+                              ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              )
+              // : _isActive
+              : HomeContent(service: _services),
+
+      // : PendingUser(gender: _gender.toString(), function: _logout),
       floatingActionButton: FloatingActionButton(
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(100.0),

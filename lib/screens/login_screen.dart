@@ -1,3 +1,4 @@
+import 'package:e_govermenet/components/services/api_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
@@ -25,7 +26,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
     try {
       final response = await http.post(
-        Uri.parse('http://192.168.100.10/egov_back/login'),
+        // Uri.parse('http://192.168.100.10/egov_back/login'),
+        Uri.parse(ApiConstants.getLoginUrl()),
         body: {
           'email': _emailController.text,
           'password': _passwordController.text,

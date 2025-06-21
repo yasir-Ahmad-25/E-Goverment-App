@@ -6,6 +6,7 @@ import 'package:e_govermenet/components/document_uploader.dart';
 import 'package:e_govermenet/components/gender_dropdown.dart';
 import 'package:e_govermenet/components/input_fields.dart';
 import 'package:e_govermenet/components/national_id_uploader.dart';
+import 'package:e_govermenet/components/services/api_constants.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -21,6 +22,7 @@ class NationalIdCardForm extends StatefulWidget {
   State<NationalIdCardForm> createState() => _NationalIdCardFormState();
 }
 
+// Form to request a National ID Card
 class _NationalIdCardFormState extends State<NationalIdCardForm> {
   String? fullName;
   String? gender;
@@ -52,10 +54,11 @@ class _NationalIdCardFormState extends State<NationalIdCardForm> {
   Future<void> _loadStates() async {
     try {
       final response = await http.get(
-        Uri.parse('http://192.168.100.10/egov_back/states/'),
+        // Uri.parse('http://192.168.100.10/egov_back/states/'),
+        Uri.parse(ApiConstants.getStatesUrl()),
       );
 
-      print(" The Response: ${response.body}");
+      // print(" The Response: ${response.body}");
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         if (data['status'] == 'success') {
@@ -87,7 +90,8 @@ class _NationalIdCardFormState extends State<NationalIdCardForm> {
   Future<void> _loadDocumentTypes() async {
     try {
       final response = await http.get(
-        Uri.parse('http://192.168.100.10/egov_back/documentTypes/3'),
+        // Uri.parse('http://192.168.100.10/egov_back/documentTypes/3'),
+        Uri.parse('${ApiConstants.getDocumentTypesUrl()}/3'),
       );
 
       if (response.statusCode == 200) {
@@ -130,17 +134,14 @@ class _NationalIdCardFormState extends State<NationalIdCardForm> {
 
       // Fetch citizen data
       final response = await http.get(
-        Uri.parse('http://192.168.100.10/egov_back/citizen/$citizenId'),
+        // Uri.parse('http://192.168.100.10/egov_back/citizen/$citizenId'),
+        Uri.parse(ApiConstants.getCitizenData(citizenId)),
       );
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         if (data['status'] == 'success') {
           setState(() {
-            // fullName = data['data']['fullname'];
-            // gender = data['data']['gender'];
-            // phone = data['data']['phone'];
-            // birthdate = data['data']['birthdate'];
             _Fullname.text = data['data']['fullname'];
             _phone.text = data['data']['phone'];
             _dob = DateFormat('yyyy-MM-dd').parse(data['data']['birthdate']);
@@ -179,7 +180,8 @@ class _NationalIdCardFormState extends State<NationalIdCardForm> {
     try {
       var request = http.MultipartRequest(
         'POST',
-        Uri.parse('http://192.168.100.10/egov_back/national_id_card'),
+        // Uri.parse('http://192.168.100.10/egov_back/national_id_card'),
+        Uri.parse(ApiConstants.saveNationalIdCardUrl()),
       );
 
       request.fields['citizen_id'] = citizenId.toString();
@@ -266,83 +268,6 @@ class _NationalIdCardFormState extends State<NationalIdCardForm> {
       _showError('Submission failed: ${e.toString()}');
     }
   }
-
-  // void _submitForm() async {
-  //   final prefs = await SharedPreferences.getInstance();
-  //   final citizenId = prefs.getInt('user_id');
-
-  //   if (citizenId == null) {
-  //     throw Exception("User ID not found in preferences");
-  //   }
-
-  //   if (_dob == null) {
-  //     _showError('Date of Birth is required');
-  //     return;
-  //   }
-
-  //   // Validate images
-
-  //   if (_document == null) {
-  //     _showError('Document is Required');
-  //     return;
-  //   }
-
-  //   try {
-  //     var request = http.MultipartRequest(
-  //       'POST',
-  //       Uri.parse('http://192.168.100.10/egov_back/national_id_card'),
-  //     );
-
-  //     // Add text fields
-  //     request.fields['citizen_id'] = citizenId.toString();
-  //     request.fields['service_id'] = "1";
-  //     request.fields['birthState'] = _selectedState.toString();
-  //     request.fields['proffesion'] = _proffesion.text;
-  //     request.fields['document_Type'] = _selectedDocumentType.toString();
-
-  //     // request.fields['document'] = _dob!.toIso8601String().substring(0, 10);
-
-  //     // Add images
-  //     if (_citizenImg != null) {
-  //       request.files.add(
-  //         await http.MultipartFile.fromPath(
-  //           'citizen_image',
-  //           _citizenImg!.path,
-  //         ),
-  //       );
-
-  //       request.fields['citizen_image'] = _citizenImg!.path;
-  //     }
-  //     if (_document != null) {
-  //       request.files.add(
-  //         await http.MultipartFile.fromPath(
-  //           'document',
-  //           _document!.path,
-  //         ),
-  //       );
-  //       request.fields['document'] = _document!.path;
-  //     }
-
-  //     // Send request
-  //     var response = await request.send();
-  //     var responseBody = await response.stream.bytesToString();
-
-  //     if (response.statusCode == 200) {
-
-  //       // Navigate
-  //       if (mounted) {
-  //         Navigator.pop(context);
-  //       }
-  //     } else {
-  //       if (kDebugMode) {
-  //         print('Server response: $responseBody');
-  //       }
-  //       throw Exception('Server error: ${response.statusCode}');
-  //     }
-  //   } catch (e) {
-  //     _showError('Submission failed: ${e.toString()}');
-  //   }
-  // }
 
   void _showError(String message) {
     ScaffoldMessenger.of(
@@ -514,13 +439,14 @@ class _NationalIdCardFormState extends State<NationalIdCardForm> {
 
                   child: DropdownButton<String>(
                     isExpanded: true,
-                    value: _selectedDocumentType,
+                    value:
+                        _DocumentTypes.contains(_selectedDocumentType)
+                            ? _selectedDocumentType
+                            : null,
                     hint: Text('Select Document Type'),
                     onChanged: (value) {
                       setState(() => _selectedDocumentType = value);
-                      // widget.onChanged(value);
                     },
-
                     items:
                         _DocumentTypes.map((type) {
                           return DropdownMenuItem(
@@ -538,7 +464,9 @@ class _NationalIdCardFormState extends State<NationalIdCardForm> {
                 _document = File(file.path!);
                 print("File Path Found");
               }
-            }, initialPlaceholderText: 'Upload $_selectedDocumentType',
+            },
+            initialPlaceholderText:
+                'Upload ${_selectedDocumentType ?? 'Document'}',
           ),
 
           SizedBox(height: 15),

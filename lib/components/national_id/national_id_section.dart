@@ -16,11 +16,13 @@ class NationalIdSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    print("NationalIdSection build called with data: $data");
     if (data == null || data!.requestStatus == "NEW") {
       return Center(
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 50.0),
-          child: RequestCard( // Replace with your actual RequestCard
+          child: RequestCard(
+            // Replace with your actual RequestCard
             card_title: 'Request National ID Card',
             card_text: 'Muwaadin Hada Dalbo National Id Card.',
             showRequestButton: true,
@@ -29,32 +31,37 @@ class NationalIdSection extends StatelessWidget {
       );
     }
 
-    if (data!.requestStatus == "Requested" || data!.requestStatus == "Pending") { // Or any other pending statuses
+    if (data!.requestStatus == "Requested" ||
+        data!.requestStatus == "Pending") {
+      // Or any other pending statuses
       return const Center(
         child: Padding(
           padding: EdgeInsets.symmetric(vertical: 50.0),
-          child: RequestCard( // Replace with your actual RequestCard
+          child: RequestCard(
+            // Replace with your actual RequestCard
             card_title: 'Application Pending',
-            card_text: 'Your National ID card application is being processed. Fadlan Sug.',
+            card_text:
+                'Your National ID card application is being processed. Fadlan Sug.',
             showRequestButton: false,
           ),
         ),
       );
     }
-    
+
     if (data!.requestStatus == "Declined") {
-       return Center(
+      return Center(
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 50.0),
-          child: RequestCard( // Replace with your actual RequestCard
+          child: RequestCard(
+            // Replace with your actual RequestCard
             card_title: 'Application Declined',
-            card_text: 'Your National ID application was declined. Please contact support.',
+            card_text:
+                'Your National ID application was declined. Please contact support.',
             showRequestButton: false, // Or a button to see details/reapply
           ),
         ),
       );
     }
-
 
     if (data!.requestStatus == "Approved") {
       return Column(
@@ -73,8 +80,10 @@ class NationalIdSection extends StatelessWidget {
         ],
       );
     }
-    
+
     // Fallback for any other unhandled status
-    return Center(child: Text("Unknown status for National ID: ${data!.requestStatus}"));
+    return Center(
+      child: Text("Unknown status for National ID: ${data!.requestStatus}"),
+    );
   }
 }
