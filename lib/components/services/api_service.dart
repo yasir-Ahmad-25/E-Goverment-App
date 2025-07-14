@@ -92,6 +92,7 @@ class ApiService {
       }
       // If no valid data but service status indicates it should exist, might be an issue
       // For now, return null if data is not valid/present
+
       return null;
     } catch (e) {
       print("Error in fetchNationalIdData: $e");
@@ -240,6 +241,7 @@ class ApiService {
       final data = await _fetchData(ApiConstants.getNationalIdUrl(citizenId));
       if (data['national_id_data'] != null &&
           data['national_id_data'].isNotEmpty) {
+        print("The returned data is: $data");
         return data['national_id_data'][0]; // Return the raw profile data
       }
       return {}; // Return empty map if no profile found

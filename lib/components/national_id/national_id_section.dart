@@ -16,7 +16,9 @@ class NationalIdSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    print("NationalIdSection build called with data: $data");
+    
+    print("fetched data is: ${data}");
+
     if (data == null || data!.requestStatus == "NEW") {
       return Center(
         child: Padding(
@@ -33,7 +35,6 @@ class NationalIdSection extends StatelessWidget {
 
     if (data!.requestStatus == "Requested" ||
         data!.requestStatus == "Pending") {
-      // Or any other pending statuses
       return const Center(
         child: Padding(
           padding: EdgeInsets.symmetric(vertical: 50.0),

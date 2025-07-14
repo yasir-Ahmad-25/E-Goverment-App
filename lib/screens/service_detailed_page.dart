@@ -188,6 +188,7 @@ class _ServiceDetailPageState extends State<ServiceDetailPage> {
 
           final data = snapshot.data!;
 
+          print("the snapshot data: $data");
           // Determine which section to show
           Widget serviceContent;
           List<String> currentQuestions =

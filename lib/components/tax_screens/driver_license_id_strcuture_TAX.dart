@@ -134,7 +134,7 @@ class DriverLicenseIDStructureTax extends StatelessWidget {
                   image: DecorationImage(
                     // image: AssetImage("assets/images/person.jpg"),
                     image: NetworkImage(
-                      "http://192.168.100.10/egov_back/$Driver_citizen_image_path",
+                      "http://192.168.100.10/Som-Gov/$Driver_citizen_image_path",
                     ),
                     fit: BoxFit.cover,
                   ),

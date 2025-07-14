@@ -27,7 +27,11 @@ class NationalIdData {
     required this.requestStatus,
   });
 
-  factory NationalIdData.fromJson(Map<String, dynamic> json, String requestStatus, bool isExpired) {
+  factory NationalIdData.fromJson(
+    Map<String, dynamic> json,
+    String requestStatus,
+    bool isExpired,
+  ) {
     return NationalIdData(
       cardNumber: json['national_id_number'] ?? 'N/A',
       fullName: json['fullname'] ?? 'N/A',
@@ -69,7 +73,11 @@ class PassportData {
     required this.requestStatus,
   });
 
- factory PassportData.fromJson(Map<String, dynamic> json, String requestStatus, bool isExpired) {
+  factory PassportData.fromJson(
+    Map<String, dynamic> json,
+    String requestStatus,
+    bool isExpired,
+  ) {
     return PassportData(
       fullName: json['fullname'] ?? 'N/A',
       gender: json['gender'] ?? 'N/A',
@@ -105,7 +113,11 @@ class BirthCertificateData {
     required this.requestStatus,
   });
 
-  factory BirthCertificateData.fromJson(Map<String, dynamic> json, String requestStatus, bool isExpired) {
+  factory BirthCertificateData.fromJson(
+    Map<String, dynamic> json,
+    String requestStatus,
+    bool isExpired,
+  ) {
     return BirthCertificateData(
       fullName: json['fullname'] ?? 'N/A',
       gender: json['gender'] ?? 'N/A',
@@ -125,7 +137,8 @@ class BusinessCertificateData {
   final String businessAddress;
   final String businessType;
   final String startDate;
-  final String scannedCertificatePath; // Assuming this exists based on your logic
+  final String
+  scannedCertificatePath; // Assuming this exists based on your logic
   final bool isExpired;
   final String requestStatus;
 
@@ -140,7 +153,11 @@ class BusinessCertificateData {
     required this.requestStatus,
   });
 
-  factory BusinessCertificateData.fromJson(Map<String, dynamic> json, String requestStatus, bool isExpired) {
+  factory BusinessCertificateData.fromJson(
+    Map<String, dynamic> json,
+    String requestStatus,
+    bool isExpired,
+  ) {
     return BusinessCertificateData(
       fullName: json['fullname'] ?? 'N/A',
       businessName: json['business_name'] ?? 'N/A',
@@ -163,12 +180,13 @@ class DriverLicenseData {
   // Add other fields like fullname, gender, etc., if they come from this specific endpoint
   // For now, assuming they might be part of a general citizen profile loaded separately
   // or you might need to adjust the API or fetch them from national ID data.
-  final String fullName; // Assuming you might get this from national id or another source
+  final String
+  fullName; // Assuming you might get this from national id or another source
   final String gender;
   final String birthDate;
-  final bool isExpired; // You'll need to determine this, maybe from 'license_status' or dates
+  final bool
+  isExpired; // You'll need to determine this, maybe from 'license_status' or dates
   final String requestStatus;
-
 
   DriverLicenseData({
     required this.plateNumber,
@@ -182,17 +200,24 @@ class DriverLicenseData {
     required this.requestStatus,
   });
 
-  factory DriverLicenseData.fromJson(Map<String, dynamic> json, String requestStatus, bool isExpired, Map<String,dynamic> nationalIdProfile) {
-     return DriverLicenseData(
+  factory DriverLicenseData.fromJson(
+    Map<String, dynamic> json,
+    String requestStatus,
+    bool isExpired,
+    Map<String, dynamic> nationalIdProfile,
+  ) {
+    return DriverLicenseData(
       plateNumber: json['plate_number'] ?? 'N/A',
       issuedAt: json['issued_At'] ?? 'N/A',
       expireAt: json['Expire_At'] ?? 'N/A',
       citizenImagePath: json['citizen_image'] ?? '',
-      fullName: nationalIdProfile['fullname'] ?? 'N/A', // Example: reusing national ID data
+      fullName:
+          nationalIdProfile['fullname'] ??
+          'N/A', // Example: reusing national ID data
       gender: nationalIdProfile['gender'] ?? 'N/A',
       birthDate: nationalIdProfile['birthdate'] ?? 'N/A',
       isExpired: isExpired, // You need logic to determine this
-      requestStatus: requestStatus,
+      requestStatus: json['license_status'],
     );
   }
 }
@@ -206,14 +231,14 @@ class ServiceStatus {
 
   factory ServiceStatus.fromJson(Map<String, dynamic> json) {
     return ServiceStatus(
-      requestStatus: json['data'] != null && json['data'].isNotEmpty ? json['data'][0]['Request_Status'] : "NEW",
+      requestStatus:
+          json['data'] != null && json['data'].isNotEmpty
+              ? json['data'][0]['Request_Status']
+              : "NEW",
       hasDocument: json['status'] == 'success',
     );
   }
-   factory ServiceStatus.empty() {
-    return ServiceStatus(
-      requestStatus: "NEW",
-      hasDocument: false,
-    );
+  factory ServiceStatus.empty() {
+    return ServiceStatus(requestStatus: "NEW", hasDocument: false);
   }
 }

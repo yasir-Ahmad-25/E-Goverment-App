@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:e_govermenet/components/document_uploader.dart';
 import 'package:e_govermenet/components/input_fields.dart';
 import 'package:e_govermenet/components/national_id_uploader.dart';
+import 'package:e_govermenet/components/services/api_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:http/http.dart' as http;
@@ -230,7 +231,7 @@ class _DriverLicenseFormState extends State<DriverLicenseForm> {
     try {
       var request = http.MultipartRequest(
         'POST',
-        Uri.parse('http://192.168.100.10/egov_back/request_driverLicense'),
+        Uri.parse(ApiConstants.saveDriverLicense()),
       );
 
       request.fields['citizen_id'] = citizenId.toString();
@@ -242,11 +243,9 @@ class _DriverLicenseFormState extends State<DriverLicenseForm> {
       request.fields['plate_number'] = _plate_number.text ?? '';
       request.fields['vehicle_color'] = _vehicle_color.text ?? '';
 
-
       // unnecessary requests
       request.fields['amount'] = carTaxAmount ?? '0';
       request.fields['due_date'] = TaxPaymentTime_based_on_car ?? '';
-
 
       if (_citizenImg != null) {
         request.files.add(
@@ -412,7 +411,8 @@ class _DriverLicenseFormState extends State<DriverLicenseForm> {
                           _selectedCarIndex = _car_types.indexOf(value!);
 
                           // Fill tax amount and payment timing based on selection
-                          carTaxAmount = _car_tax_amounts[_selectedCarIndex!].toString();
+                          carTaxAmount =
+                              _car_tax_amounts[_selectedCarIndex!].toString();
                           TaxPaymentTime_based_on_car =
                               _car_payment_times[_selectedCarIndex!];
 
