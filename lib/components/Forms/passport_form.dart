@@ -51,7 +51,7 @@ class _PassportFormState extends State<PassportForm> {
   Future<void> _loadStates() async {
     try {
       final response = await http.get(
-        Uri.parse('http://192.168.100.10/egov_back/states/'),
+        Uri.parse('http://192.168.100.10/Som-Gov/states/'),
       );
 
       print(" The Response: ${response.body}");
@@ -86,7 +86,7 @@ class _PassportFormState extends State<PassportForm> {
   Future<void> _loadDocumentTypes() async {
     try {
       final response = await http.get(
-        Uri.parse('http://192.168.100.10/egov_back/documentTypes/2'),
+        Uri.parse('http://192.168.100.10/Som-Gov/documentTypes/2'),
       );
 
       if (response.statusCode == 200) {
@@ -129,7 +129,7 @@ class _PassportFormState extends State<PassportForm> {
 
       // Fetch citizen data
       final response = await http.get(
-        Uri.parse('http://192.168.100.10/egov_back/citizen/$citizenId'),
+        Uri.parse('http://192.168.100.10/Som-Gov/citizen/$citizenId'),
       );
 
       if (response.statusCode == 200) {
@@ -178,7 +178,7 @@ class _PassportFormState extends State<PassportForm> {
     try {
       var request = http.MultipartRequest(
         'POST',
-        Uri.parse('http://192.168.100.10/egov_back/request_passport'),
+        Uri.parse('http://192.168.100.10/Som-Gov/request_passport'),
       );
 
       request.fields['citizen_id'] = citizenId.toString();

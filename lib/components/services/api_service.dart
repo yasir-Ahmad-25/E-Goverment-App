@@ -148,14 +148,14 @@ class ApiService {
           data['birth_certificate_data'].isNotEmpty) {
         final rawData = data['birth_certificate_data'][0];
         // Assuming 'scanned_birth_certificate' path presence indicates validity for display
-        if (Validators.isValidId(rawData['scanned_birth_certificate'])) {
-          bool isExpired = rawData['certificate_status'] == 'Expired';
-          return BirthCertificateData.fromJson(
-            rawData,
-            serviceStatus.requestStatus,
-            isExpired,
-          );
-        }
+        // if (Validators.isValidId(rawData['scanned_birth_certificate'])) {
+        bool isExpired = rawData['certificate_status'] == 'Expired';
+        return BirthCertificateData.fromJson(
+          rawData,
+          serviceStatus.requestStatus,
+          isExpired,
+        );
+        // }
       }
       return null;
     } catch (e) {

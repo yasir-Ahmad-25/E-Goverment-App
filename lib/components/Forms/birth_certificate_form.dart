@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:e_govermenet/components/document_uploader.dart';
 import 'package:e_govermenet/components/input_fields.dart';
 import 'package:e_govermenet/components/national_id_uploader.dart';
+import 'package:e_govermenet/components/services/api_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:http/http.dart' as http;
@@ -178,14 +179,15 @@ class _BirthCertificateFormState extends State<BirthCertificateForm> {
     try {
       var request = http.MultipartRequest(
         'POST',
-        Uri.parse('http://192.168.100.10/egov_back/request_birth_certificate'),
+        Uri.parse(ApiConstants.saveBirthCertificate()),
       );
 
       request.fields['citizen_id'] = citizenId.toString();
       request.fields['service_id'] = "3";
 
+      print("selected Type : $_selectedType");
       request.fields['birthState'] = _selectedState ?? '';
-      request.fields['proffesion'] = _selectedDocumentType ?? _proffesion.text;
+      request.fields['proffesion'] = _selectedType ?? _proffesion.text;
 
       if (_citizenImg != null) {
         request.files.add(

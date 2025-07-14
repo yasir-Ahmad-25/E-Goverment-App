@@ -43,7 +43,7 @@ class _HomeScreenState extends State<HomeScreen> {
         break;
       case 1:
         // Navigate to Reports Screen
-        Navigator.pushNamed(context, 'reports_screen');
+        Navigator.pushNamed(context, 'taxes');
         break;
       case 2:
         // Navigate to Tax Payment
@@ -263,18 +263,18 @@ class _HomeScreenState extends State<HomeScreen> {
               : HomeContent(service: _services),
 
       // : PendingUser(gender: _gender.toString(), function: _logout),
-      floatingActionButton: FloatingActionButton(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(100.0),
-        ),
-        backgroundColor: Colors.white,
-        elevation: 4, // visible shadow
-        onPressed: () {
-          Navigator.pushNamed(context, 'taxes');
-        },
-        child: const Icon(Icons.attach_money_rounded, color: Colors.blue),
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      // floatingActionButton: FloatingActionButton(
+      //   shape: RoundedRectangleBorder(
+      //     borderRadius: BorderRadius.circular(100.0),
+      //   ),
+      //   backgroundColor: Colors.white,
+      //   elevation: 4, // visible shadow
+      //   onPressed: () {
+      //     Navigator.pushNamed(context, 'taxes');
+      //   },
+      //   child: const Icon(Icons.attach_money_rounded, color: Colors.blue),
+      // ),
+      // floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
 
       bottomNavigationBar: BottomBar(
         selectedIndex: _selectedIndex,
@@ -494,14 +494,13 @@ class BottomBar extends StatelessWidget {
               selectedColor: primaryColor,
             ),
             NavBarIcon(
-              text: "Report",
-              icon: FontAwesomeIcons.file,
+              text: "Taxes",
+              icon: Icons.attach_money_rounded,
               selected: selectedIndex == 1,
               onPressed: () => method?.call(1),
               defaultColor: Colors.grey,
               selectedColor: primaryColor,
-            ),
-            const SizedBox(width: 56), // space for FAB
+            ), // space for FAB
             NavBarIcon(
               text: "Help Center",
               icon: Icons.help_rounded,

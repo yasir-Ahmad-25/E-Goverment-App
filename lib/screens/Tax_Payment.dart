@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:math';
+import 'package:e_govermenet/components/services/api_constants.dart';
 import 'package:e_govermenet/components/tax_screens/business_tax_form.dart';
 import 'package:e_govermenet/components/tax_screens/driver_license_details_TAX.dart';
 import 'package:e_govermenet/components/tax_screens/driver_license_id_strcuture_TAX.dart';
@@ -216,9 +217,95 @@ class _TaxPaymentState extends State<TaxPayment> {
     }
   }
 
+
   bool isDriverPlateNumberValid(String? id) {
     return id != null && id != '0' && id.trim().isNotEmpty;
   }
+
+  Future<void> saveBusinessTax(BuildContext context) async {
+    final prefs = await SharedPreferences.getInstance();
+    final citizenId = prefs.getInt('user_id');
+
+    // Step 1: Get current date
+    final now = DateTime.now();
+
+    // Step 2: Parse the tax payment timing (e.g., '3' or '6' months)
+    final int monthsToAdd = int.tryParse(TaxPaymentTime_based_on_car) ?? 0;
+
+    // Step 3: Add the months to current date to get due date
+    final futureDate = DateTime(now.year, now.month + monthsToAdd, now.day);
+    final String formattedDueDate = DateFormat('yyyy-MM-dd').format(futureDate);
+
+    final url = Uri.parse(ApiConstants.saveTaxPayment());
+    final body = {
+      'citizen_id': citizenId.toString(),
+      'category_id': '2',
+      'amount': annualIncomeController.text,
+      'due_date': formattedDueDate,
+    };
+
+    try {
+      final response = await http.post(url, body: body);
+      final data = jsonDecode(response.body);
+
+      print(response.body);
+      if (data['status'] == 'success') {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => PaymentSuccessPage()),
+        );
+      } else {
+        throw Exception(data['message']);
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error: ${e.toString()}')));
+    }
+  }
+
+  Future<void> saveHouseTax(BuildContext context) async {
+    final prefs = await SharedPreferences.getInstance();
+    final citizenId = prefs.getInt('user_id');
+
+    // Step 1: Get current date
+    final now = DateTime.now();
+
+    // Step 2: Parse the tax payment timing (e.g., '3' or '6' months)
+    final int monthsToAdd = int.tryParse(TaxPaymentTime_based_on_car) ?? 0;
+
+    // Step 3: Add the months to current date to get due date
+    final futureDate = DateTime(now.year, now.month + monthsToAdd, now.day);
+    final String formattedDueDate = DateFormat('yyyy-MM-dd').format(futureDate);
+
+    final url = Uri.parse(ApiConstants.saveTaxPayment());
+    final body = {
+      'citizen_id': citizenId.toString(),
+      'category_id': '3',
+      'amount': taxAmount.toString(),
+      'due_date': formattedDueDate,
+    };
+
+    try {
+      final response = await http.post(url, body: body);
+      final data = jsonDecode(response.body);
+
+      print(response.body);
+      if (data['status'] == 'success') {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => PaymentSuccessPage()),
+        );
+      } else {
+        throw Exception(data['message']);
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error: ${e.toString()}')));
+    }
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -470,13 +557,14 @@ class _TaxPaymentState extends State<TaxPayment> {
                             "Submit Tax Payment",
                             style: TextStyle(color: Colors.white),
                           ),
-                          onPressed: () {
-                            if (_formKey.currentState!.validate()) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text("Business Tax Submitted"),
-                                ),
-                              );
+                          onPressed: () async {
+                            if (_formKey.currentState!.validate())  {
+                              await saveBusinessTax(context);
+                              // ScaffoldMessenger.of(context).showSnackBar(
+                              //   SnackBar(
+                              //     content: Text("Business Tax Submitted"),
+                              //   ),
+                              // );
                               // You can pass taxAmount to backend here
                             }
                           },
@@ -594,13 +682,14 @@ class _TaxPaymentState extends State<TaxPayment> {
                               "Submit House Tax",
                               style: TextStyle(color: Colors.white),
                             ),
-                            onPressed: () {
+                            onPressed: () async {
                               if (_HouseformKey.currentState!.validate()) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text("House Tax Submitted"),
-                                  ),
-                                );
+                                await saveHouseTax(context);
+                                // ScaffoldMessenger.of(context).showSnackBar(
+                                //   SnackBar(
+                                //     content: Text("House Tax Submitted"),
+                                //   ),
+                                // );
                                 // Send houseNumberController.text and taxAmount to backend
                               }
                             },

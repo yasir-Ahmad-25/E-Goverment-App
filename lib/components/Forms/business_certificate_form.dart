@@ -5,6 +5,7 @@ import 'package:e_govermenet/components/date_input_field.dart';
 import 'package:e_govermenet/components/document_uploader.dart';
 import 'package:e_govermenet/components/input_fields.dart';
 import 'package:e_govermenet/components/national_id_uploader.dart';
+import 'package:e_govermenet/components/services/api_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:http/http.dart' as http;
@@ -220,7 +221,7 @@ class _BusinessCertificateFormState extends State<BusinessCertificateForm> {
     try {
       var request = http.MultipartRequest(
         'POST',
-        Uri.parse('http://192.168.100.10/egov_back/request_business'),
+        Uri.parse(ApiConstants.saveBusinessLicense()),
       );
 
       request.fields['citizen_id'] = citizenId.toString();

@@ -18,7 +18,7 @@ class _TaxesScreenState extends State<TaxesScreen> {
     try {
       // Fetch services data
       final response = await http.get(
-        Uri.parse('http://192.168.100.10/egov_back/taxes/'),
+        Uri.parse('http://192.168.100.10/Som-Gov/taxes/'),
       );
 
       if (response.statusCode == 200) {
