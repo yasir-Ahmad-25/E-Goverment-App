@@ -166,7 +166,7 @@ class BusinessCertificateData {
       startDate: json['Start_Date'] ?? 'N/A',
       scannedCertificatePath: json['scanned_business_certificate'] ?? '',
       isExpired: isExpired, // Assuming 'business_status' can indicate expiry
-      requestStatus: requestStatus,
+      requestStatus: json['business_status'],
     );
   }
 }

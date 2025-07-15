@@ -24,7 +24,9 @@ class TaxPayment extends StatefulWidget {
 class _TaxPaymentState extends State<TaxPayment> {
   String Driver_citizen_image_path = "";
   bool doesitHaveCar = false;
+  bool doesitHaveBusiness = false;
   bool isPaymentTime = false;
+  bool isBusinessPayTime = false;
 
   String? taxDueDate; // From backend
   int daysUntilDue = 0;
@@ -46,7 +48,7 @@ class _TaxPaymentState extends State<TaxPayment> {
   final _formKey = GlobalKey<FormState>();
 
   TextEditingController businessNameController = TextEditingController();
-  TextEditingController licenseNumberController = TextEditingController();
+  TextEditingController businessTypeController = TextEditingController();
   TextEditingController annualIncomeController = TextEditingController();
 
   // ========================== House Tax ===============================
@@ -72,10 +74,12 @@ class _TaxPaymentState extends State<TaxPayment> {
 
   List<Map<String, dynamic>> _paymentMethods = [];
   String TaxPaymentTime_based_on_car = "0";
+  String business_TaxPaymentTime = "0";
   @override
   void initState() {
     super.initState();
     _loadDriverLicenseData();
+    _loadBusinessData();
     _loadPaymentMethods();
   }
 
@@ -138,6 +142,67 @@ class _TaxPaymentState extends State<TaxPayment> {
         }
       } else {
         throw Exception("Failed to load Driver License data.");
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Error: ${e.toString()}")));
+    }
+  }
+
+  Future<void> _loadBusinessData() async {
+    final prefs = await SharedPreferences.getInstance();
+    final citizenId = prefs.getInt('user_id');
+
+    try {
+      var response = await http.get(
+        Uri.parse('http://192.168.100.10/Som-Gov/business_tax/$citizenId'),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['status'] == 'success' &&
+            data['tax_data'] != null &&
+            data['tax_data'].isNotEmpty) {
+          final businessData = data['tax_data'][0];
+
+
+          if (isBusinessStatusValid(businessData['business_status'])) {
+            businessNameController.text = businessData['business_name'];
+            businessTypeController.text = businessData['business_type'];
+            annualIncomeController.text = businessData['amount'];
+            business_TaxPaymentTime = businessData['due_date'];
+
+            if (businessData['due_date'] != null) {
+              taxDueDate = businessData['due_date'];
+
+              final DateTime taxDate = DateTime.parse(taxDueDate!);
+              final DateTime now = DateTime.now();
+              final int diffDays = taxDate.difference(now).inDays;
+
+              setState(() {
+                isBusinessPayTime =
+                    taxDate.year <= now.year &&
+                    taxDate.month <= now.month &&
+                    taxDate.day <= now.day &&
+                    businessData['status'] == 'Unpaid';
+                daysUntilDue = diffDays;
+              });
+            }
+
+            setState(() {
+              doesitHaveBusiness = true;
+            });
+          } else {
+            setState(() {
+              doesitHaveBusiness = false;
+            });
+          }
+        } else {
+          print("No Business data found.");
+        }
+      } else {
+        throw Exception("Failed to load Business data.");
       }
     } catch (e) {
       ScaffoldMessenger.of(
@@ -218,8 +283,13 @@ class _TaxPaymentState extends State<TaxPayment> {
   }
 
 
+
   bool isDriverPlateNumberValid(String? id) {
     return id != null && id != '0' && id.trim().isNotEmpty;
+  }
+
+  bool isBusinessStatusValid(String? status) {
+    return status != null && status != 'Requested' && status.trim().isNotEmpty;
   }
 
   Future<void> saveBusinessTax(BuildContext context) async {
@@ -228,18 +298,13 @@ class _TaxPaymentState extends State<TaxPayment> {
 
     // Step 1: Get current date
     final now = DateTime.now();
-
-    // Step 2: Parse the tax payment timing (e.g., '3' or '6' months)
-    final int monthsToAdd = int.tryParse(TaxPaymentTime_based_on_car) ?? 0;
-
-    // Step 3: Add the months to current date to get due date
-    final futureDate = DateTime(now.year, now.month + monthsToAdd, now.day);
-    final String formattedDueDate = DateFormat('yyyy-MM-dd').format(futureDate);
+    final nextYearDate = DateTime(now.year + 1, now.month, now.day);
+    final formattedDueDate = DateFormat('yyyy-MM-dd').format(nextYearDate);
 
     final url = Uri.parse(ApiConstants.saveTaxPayment());
     final body = {
       'citizen_id': citizenId.toString(),
-      'category_id': '2',
+      'category_id': '3',
       'amount': annualIncomeController.text,
       'due_date': formattedDueDate,
     };
@@ -281,7 +346,7 @@ class _TaxPaymentState extends State<TaxPayment> {
     final url = Uri.parse(ApiConstants.saveTaxPayment());
     final body = {
       'citizen_id': citizenId.toString(),
-      'category_id': '3',
+      'category_id': '100',
       'amount': taxAmount.toString(),
       'due_date': formattedDueDate,
     };
@@ -458,128 +523,270 @@ class _TaxPaymentState extends State<TaxPayment> {
                     ),
               ],
               if (widget.tax.categoryId == 2) ...[
-                Form(
-                  key: _formKey,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        "Business Tax Details",
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      SizedBox(height: 10),
+                doesitHaveBusiness
+                    ? Column(
+                      children: [
 
-                      TextFormField(
-                        controller: businessNameController,
-                        decoration: InputDecoration(
-                          labelText: "Business Name",
-                          border: OutlineInputBorder(),
-                          prefixIcon: Icon(Icons.business),
-                        ),
-                        validator:
-                            (value) =>
-                                value!.isEmpty
-                                    ? "Please enter business name"
-                                    : null,
-                      ),
-                      SizedBox(height: 15),
-
-                      TextFormField(
-                        controller: licenseNumberController,
-                        decoration: InputDecoration(
-                          labelText: "License Number",
-                          border: OutlineInputBorder(),
-                          prefixIcon: Icon(Icons.confirmation_number),
-                        ),
-                        validator:
-                            (value) =>
-                                value!.isEmpty
-                                    ? "Please enter license number"
-                                    : null,
-                      ),
-                      SizedBox(height: 15),
-
-                      TextFormField(
-                        controller: annualIncomeController,
-                        keyboardType: TextInputType.number,
-                        decoration: InputDecoration(
-                          labelText: "Annual Income (\$)",
-                          border: OutlineInputBorder(),
-                          prefixIcon: Icon(Icons.attach_money),
-                        ),
-                        validator:
-                            (value) =>
-                                value!.isEmpty ? "Please enter income" : null,
-                        onChanged: (value) {
-                          setState(() {
-                            double income = double.tryParse(value) ?? 0;
-                            // 💡 Example logic: 10% of income as tax
-                            taxAmount = (income * 0.10).toStringAsFixed(2);
-                          });
-                        },
-                      ),
-                      SizedBox(height: 20),
-
-                      if (taxAmount.isNotEmpty)
-                        Container(
-                          padding: EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: Colors.green.shade50,
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: Colors.green),
-                          ),
-                          child: Row(
-                            children: [
-                              Icon(Icons.receipt_long, color: Colors.green),
-                              SizedBox(width: 10),
-                              Expanded(
-                                child: Text(
-                                  "Estimated Tax to Pay: \$$taxAmount",
+                        if(isBusinessPayTime) ...[
+                          Form(
+                            key: _formKey,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  "Business Tax Details",
                                   style: TextStyle(
+                                    fontSize: 18,
                                     fontWeight: FontWeight.bold,
-                                    fontSize: 16,
-                                    color: Colors.green[700],
                                   ),
+                                ),
+                                SizedBox(height: 10),
+
+                                TextFormField(
+                                  controller: businessNameController,
+                                  decoration: InputDecoration(
+                                    labelText: "Business Name",
+                                    border: OutlineInputBorder(),
+                                    prefixIcon: Icon(Icons.business),
+                                  ),
+                                  validator:
+                                      (value) =>
+                                  value!.isEmpty
+                                      ? "Please enter business name"
+                                      : null,
+                                ),
+                                SizedBox(height: 15),
+
+                                TextFormField(
+                                  controller: businessTypeController,
+                                  decoration: InputDecoration(
+                                    labelText: "Business Type",
+                                    border: OutlineInputBorder(),
+                                    prefixIcon: Icon(Icons.confirmation_number),
+                                  ),
+                                  validator:
+                                      (value) =>
+                                  value!.isEmpty
+                                      ? "Please enter Business Type"
+                                      : null,
+                                ),
+                                SizedBox(height: 15),
+
+                                TextFormField(
+                                  controller: annualIncomeController,
+                                  keyboardType: TextInputType.number,
+                                  decoration: InputDecoration(
+                                    labelText: "Annual Income (\$)",
+                                    border: OutlineInputBorder(),
+                                    prefixIcon: Icon(Icons.attach_money),
+                                  ),
+                                  // validator:
+                                  //     (value) =>
+                                  //         value!.isEmpty ? "Please enter income" : null,
+                                  // onChanged: (value) {
+                                  //   setState(() {
+                                  //     double income = double.tryParse(value) ?? 0;
+                                  //     // 💡 Example logic: 10% of income as tax
+                                  //     taxAmount = (income * 0.10).toStringAsFixed(2);
+                                  //   });
+                                  // },
+                                ),
+                                SizedBox(height: 20),
+
+                                if (annualIncomeController.text.isNotEmpty)
+                                  Container(
+                                    padding: EdgeInsets.all(16),
+                                    decoration: BoxDecoration(
+                                      color: Colors.green.shade50,
+                                      borderRadius: BorderRadius.circular(12),
+                                      border: Border.all(color: Colors.green),
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        Icon(Icons.receipt_long, color: Colors.green),
+                                        SizedBox(width: 10),
+                                        Expanded(
+                                          child: Text(
+                                            "Estimated Tax to Pay: \$${annualIncomeController.text}",
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 16,
+                                              color: Colors.green[700],
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                SizedBox(height: 25),
+
+                                Center(
+                                  child: ElevatedButton.icon(
+                                    icon: Icon(Icons.payment, color: Colors.white),
+                                    label: Text(
+                                      "Submit Tax Payment",
+                                      style: TextStyle(color: Colors.white),
+                                    ),
+                                    onPressed: () async {
+                                      if (_formKey.currentState!.validate())  {
+                                        await saveBusinessTax(context);
+                                      }
+                                    },
+                                    style: ElevatedButton.styleFrom(
+                                      padding: EdgeInsets.symmetric(
+                                        horizontal: 24,
+                                        vertical: 12,
+                                      ),
+                                      backgroundColor: Colors.blue.shade700,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          )
+                        ]else ...[
+                          Padding(
+                            padding: const EdgeInsets.all(20.0),
+                            child: Card(
+                              elevation: 2,
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                              color: Colors.orange[50],
+                              child: Padding(
+                                padding: const EdgeInsets.all(20.0),
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Icon(
+                                      Icons.info_outline_rounded,
+                                      color: Colors.orange[800],
+                                      size: 34,
+                                    ),
+                                    const SizedBox(width: 16),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            "No Action Needed",
+                                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                              color: Colors.orange[900],
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 8),
+                                          Text(
+                                            "Your next tax payment is not due yet.",
+                                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                              color: Colors.orange[800],
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 6),
+                                          Text(
+                                            "You have $daysUntilDue day(s) left until your payment date:\n$taxDueDate.",
+                                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                              color: Colors.orange[700],
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          )
+                          ,
+                        ]
+                      ],
+                    )
+                    :  Column(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(20.0),
+                      child: Card(
+                        elevation: 4,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+                        color: Colors.orange[50],
+                        child: Padding(
+                          padding: const EdgeInsets.all(24.0),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Icon(
+                                Icons.business_rounded,
+                                color: Colors.orange,
+                                size: 44,
+                              ),
+                              const SizedBox(width: 18),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      "No Business Registered",
+                                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                        color: Colors.orange[900],
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      "You don’t have a registered business or a valid business license on file. Please register your business to access tax payment features and stay compliant.",
+                                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                        color: Colors.orange[800],
+                                      ),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Row(
+                                      children: [
+                                        const Icon(Icons.info_outline, color: Colors.orange, size: 18),
+                                        const SizedBox(width: 6),
+                                        Text(
+                                          "Business registration is required by law.",
+                                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                            color: Colors.orange[700],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
                                 ),
                               ),
                             ],
                           ),
                         ),
-                      SizedBox(height: 25),
-
-                      Center(
+                      ),
+                    ),
+                    const SizedBox(height: 22),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 32.0),
+                      child: SizedBox(
+                        width: double.infinity,
                         child: ElevatedButton.icon(
-                          icon: Icon(Icons.payment, color: Colors.white),
-                          label: Text(
-                            "Submit Tax Payment",
-                            style: TextStyle(color: Colors.white),
+                          icon: const Icon(Icons.assignment_add, size: 22),
+                          label: const Text(
+                            "Register My Business",
+                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                           ),
-                          onPressed: () async {
-                            if (_formKey.currentState!.validate())  {
-                              await saveBusinessTax(context);
-                              // ScaffoldMessenger.of(context).showSnackBar(
-                              //   SnackBar(
-                              //     content: Text("Business Tax Submitted"),
-                              //   ),
-                              // );
-                              // You can pass taxAmount to backend here
-                            }
+                          onPressed: () {
+                            Navigator.pushNamed(context, 'business_form');
                           },
                           style: ElevatedButton.styleFrom(
-                            padding: EdgeInsets.symmetric(
-                              horizontal: 24,
-                              vertical: 12,
+                            backgroundColor: Colors.orange[700],
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 18),
+                            elevation: 3,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
                             ),
-                            backgroundColor: Colors.blue.shade700,
+                            textStyle: const TextStyle(fontWeight: FontWeight.bold),
                           ),
                         ),
                       ),
-                    ],
-                  ),
-                ),
+                    ),
+                  ],
+                )
               ],
 
               if (widget.tax.categoryId == 3) ...[

@@ -179,7 +179,7 @@ class ApiService {
       if (data['business_certificate_data'] != null &&
           data['business_certificate_data'].isNotEmpty) {
         final rawData = data['business_certificate_data'][0];
-        if (Validators.isValidId(rawData['scanned_business_certificate'])) {
+        // if (Validators.isValidId(rawData['scanned_business_certificate'])) {
           // Check a relevant field
           bool isExpired = rawData['business_status'] == 'Expired';
           return BusinessCertificateData.fromJson(
@@ -187,7 +187,7 @@ class ApiService {
             serviceStatus.requestStatus,
             isExpired,
           );
-        }
+        // }
       }
       return null;
     } catch (e) {
