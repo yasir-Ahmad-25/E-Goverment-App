@@ -117,12 +117,15 @@ class _ServiceDetailPageState extends State<ServiceDetailPage> {
     // Example: Fetch National ID profile which might be used by Driver's License
     final nationalIdProfile =
         await _apiService.fetchNationalIdProfileForOtherServices();
-    results['nationalIdProfile'] = nationalIdProfile;
+    // results['nationalIdProfile'] = nationalIdProfile;
+
 
     try {
       switch (widget.service.serId) {
         case 1:
+
           results['nationalIdData'] = await _apiService.fetchNationalIdData();
+          print("The Result is: $results");
           break;
         case 2:
           results['passportData'] = await _apiService.fetchPassportData();
@@ -188,7 +191,7 @@ class _ServiceDetailPageState extends State<ServiceDetailPage> {
 
           final data = snapshot.data!;
 
-          print("the snapshot data: $data");
+          // print("the snapshot data: $data");
           // Determine which section to show
           Widget serviceContent;
           List<String> currentQuestions =

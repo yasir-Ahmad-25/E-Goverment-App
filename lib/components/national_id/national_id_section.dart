@@ -16,8 +16,6 @@ class NationalIdSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    
-    print("fetched data is: ${data}");
 
     if (data == null || data!.requestStatus == "NEW") {
       return Center(
@@ -25,7 +23,7 @@ class NationalIdSection extends StatelessWidget {
           padding: const EdgeInsets.symmetric(vertical: 50.0),
           child: RequestCard(
             // Replace with your actual RequestCard
-            card_title: 'Request National ID Card',
+            card_title: 'Request National ID Card 2025',
             card_text: 'Muwaadin Hada Dalbo National Id Card.',
             showRequestButton: true,
           ),
@@ -34,7 +32,7 @@ class NationalIdSection extends StatelessWidget {
     }
 
     if (data!.requestStatus == "Requested" ||
-        data!.requestStatus == "Pending") {
+        data!.requestStatus == "Under-Review") {
       return const Center(
         child: Padding(
           padding: EdgeInsets.symmetric(vertical: 50.0),

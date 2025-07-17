@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:e_govermenet/components/services/api_constants.dart';
 import 'package:e_govermenet/screens/Tax_Payment.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -18,7 +19,8 @@ class _TaxesScreenState extends State<TaxesScreen> {
     try {
       // Fetch services data
       final response = await http.get(
-        Uri.parse('http://192.168.100.10/Som-Gov/taxes/'),
+        // Uri.parse('http://192.168.202.39/Som-Gov/taxes/'),
+        Uri.parse(ApiConstants.getTaxes()),
       );
 
       if (response.statusCode == 200) {

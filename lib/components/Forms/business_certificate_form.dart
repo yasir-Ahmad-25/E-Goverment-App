@@ -58,7 +58,8 @@ class _BusinessCertificateFormState extends State<BusinessCertificateForm> {
   Future<void> _loadStates() async {
     try {
       final response = await http.get(
-        Uri.parse('http://192.168.100.10/egov_back/states/'),
+        // Uri.parse('http://192.168.100.10/egov_back/states/'),
+        Uri.parse(ApiConstants.getStatesUrl()),
       );
 
       print(" The Response: ${response.body}");
@@ -93,7 +94,8 @@ class _BusinessCertificateFormState extends State<BusinessCertificateForm> {
   Future<void> _loadBusinessTypes() async {
     try {
       final response = await http.get(
-        Uri.parse('http://192.168.100.10/egov_back/business_types'),
+        Uri.parse(ApiConstants.getBusinessTypes()),
+        // Uri.parse('http://192.168.100.10/egov_back/business_types'),
       );
 
       if (response.statusCode == 200) {
@@ -129,7 +131,8 @@ class _BusinessCertificateFormState extends State<BusinessCertificateForm> {
   Future<void> _loadDocumentTypes() async {
     try {
       final response = await http.get(
-        Uri.parse('http://192.168.100.10/egov_back/documentTypes/4'),
+        // Uri.parse('http://192.168.100.10/egov_back/documentTypes/4'),
+        Uri.parse(ApiConstants.getDocumentTypes4()),
       );
 
       if (response.statusCode == 200) {
@@ -172,7 +175,8 @@ class _BusinessCertificateFormState extends State<BusinessCertificateForm> {
 
       // Fetch citizen data
       final response = await http.get(
-        Uri.parse('http://192.168.100.10/egov_back/citizen/$citizenId'),
+        // Uri.parse('http://192.168.100.10/egov_back/citizen/$citizenId'),
+        Uri.parse(ApiConstants.getCitizenData(citizenId)),
       );
 
       if (response.statusCode == 200) {

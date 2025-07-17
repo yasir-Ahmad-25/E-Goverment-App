@@ -64,7 +64,8 @@ class _DriverLicenseFormState extends State<DriverLicenseForm> {
   Future<void> _loadStates() async {
     try {
       final response = await http.get(
-        Uri.parse('http://192.168.100.10/egov_back/states/'),
+        // Uri.parse('http://192.168.202.39/Som-Gov/states/'),
+        Uri.parse(ApiConstants.getStatesUrl()),
       );
 
       print(" The Response: ${response.body}");
@@ -99,7 +100,8 @@ class _DriverLicenseFormState extends State<DriverLicenseForm> {
   Future<void> _loadDocumentTypes() async {
     try {
       final response = await http.get(
-        Uri.parse('http://192.168.100.10/egov_back/documentTypes/4'),
+        // Uri.parse('http://192.168.202.39/Som-Gov/documentTypes/4'),
+        Uri.parse(ApiConstants.getDocumentTypes4()),
       );
 
       if (response.statusCode == 200) {
@@ -142,7 +144,8 @@ class _DriverLicenseFormState extends State<DriverLicenseForm> {
 
       // Fetch citizen data
       final response = await http.get(
-        Uri.parse('http://192.168.100.10/egov_back/citizen/$citizenId'),
+        // Uri.parse('http://192.168.202.39/Som-Gov/citizen/$citizenId'),
+        Uri.parse(ApiConstants.getCitizenData(citizenId)),
       );
 
       if (response.statusCode == 200) {
@@ -177,7 +180,8 @@ class _DriverLicenseFormState extends State<DriverLicenseForm> {
   Future<void> _loadCarTypes() async {
     try {
       final response = await http.get(
-        Uri.parse('http://192.168.100.10/egov_back/car_types'),
+        // Uri.parse('http://192.168.202.39/Som-Gov/car_types'),
+        Uri.parse(ApiConstants.getCarTypes()),
       );
 
       if (response.statusCode == 200) {

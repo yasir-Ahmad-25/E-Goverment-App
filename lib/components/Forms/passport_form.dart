@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:e_govermenet/components/document_uploader.dart';
 import 'package:e_govermenet/components/input_fields.dart';
 import 'package:e_govermenet/components/national_id_uploader.dart';
+import 'package:e_govermenet/components/services/api_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:http/http.dart' as http;
@@ -51,7 +52,8 @@ class _PassportFormState extends State<PassportForm> {
   Future<void> _loadStates() async {
     try {
       final response = await http.get(
-        Uri.parse('http://192.168.100.10/Som-Gov/states/'),
+        // Uri.parse('http://192.168.100.10/Som-Gov/states/'),
+        Uri.parse(ApiConstants.getStatesUrl()),
       );
 
       print(" The Response: ${response.body}");
@@ -86,7 +88,8 @@ class _PassportFormState extends State<PassportForm> {
   Future<void> _loadDocumentTypes() async {
     try {
       final response = await http.get(
-        Uri.parse('http://192.168.100.10/Som-Gov/documentTypes/2'),
+        // Uri.parse('http://192.168.100.10/Som-Gov/documentTypes/2'),
+        Uri.parse(ApiConstants.getDocumentTypes2()),
       );
 
       if (response.statusCode == 200) {
@@ -129,7 +132,8 @@ class _PassportFormState extends State<PassportForm> {
 
       // Fetch citizen data
       final response = await http.get(
-        Uri.parse('http://192.168.100.10/Som-Gov/citizen/$citizenId'),
+        // Uri.parse('http://192.168.100.10/Som-Gov/citizen/$citizenId'),
+        Uri.parse(ApiConstants.getCitizenData(citizenId)),
       );
 
       if (response.statusCode == 200) {
@@ -178,7 +182,8 @@ class _PassportFormState extends State<PassportForm> {
     try {
       var request = http.MultipartRequest(
         'POST',
-        Uri.parse('http://192.168.100.10/Som-Gov/request_passport'),
+        // Uri.parse('http://192.168.100.10/Som-Gov/request_passport'),
+        Uri.parse(ApiConstants.savePassportUrl()),
       );
 
       request.fields['citizen_id'] = citizenId.toString();

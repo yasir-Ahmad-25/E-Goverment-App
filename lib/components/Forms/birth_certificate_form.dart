@@ -52,7 +52,8 @@ class _BirthCertificateFormState extends State<BirthCertificateForm> {
   Future<void> _loadStates() async {
     try {
       final response = await http.get(
-        Uri.parse('http://192.168.100.10/egov_back/states/'),
+        // Uri.parse('http://192.168.100.10/egov_back/states/'),
+        Uri.parse(ApiConstants.getStatesUrl()),
       );
 
       print(" The Response: ${response.body}");
@@ -87,7 +88,8 @@ class _BirthCertificateFormState extends State<BirthCertificateForm> {
   Future<void> _loadDocumentTypes() async {
     try {
       final response = await http.get(
-        Uri.parse('http://192.168.100.10/egov_back/documentTypes/1'),
+        Uri.parse(ApiConstants.getDocumentTypes2()),
+        // Uri.parse('http://192.168.100.10/egov_back/documentTypes/1'),
       );
 
       if (response.statusCode == 200) {
@@ -130,7 +132,8 @@ class _BirthCertificateFormState extends State<BirthCertificateForm> {
 
       // Fetch citizen data
       final response = await http.get(
-        Uri.parse('http://192.168.100.10/egov_back/citizen/$citizenId'),
+        // Uri.parse('http://192.168.100.10/egov_back/citizen/$citizenId'),
+        Uri.parse(ApiConstants.getCitizenData(citizenId)),
       );
 
       if (response.statusCode == 200) {

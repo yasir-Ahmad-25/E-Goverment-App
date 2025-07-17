@@ -81,14 +81,14 @@ class ApiService {
       if (data['national_id_data'] != null &&
           data['national_id_data'].isNotEmpty) {
         final rawData = data['national_id_data'][0];
-        if (Validators.isValidId(rawData['national_id_number'])) {
+        // if (Validators.isValidId(rawData['national_id_number'])) {
           bool isExpired = rawData['national_id_card_status'] == 'Expired';
           return NationalIdData.fromJson(
             rawData,
             serviceStatus.requestStatus,
             isExpired,
           );
-        }
+        // }
       }
       // If no valid data but service status indicates it should exist, might be an issue
       // For now, return null if data is not valid/present
@@ -116,14 +116,14 @@ class ApiService {
       final data = await _fetchData(ApiConstants.getPassportUrl(citizenId));
       if (data['passport_data'] != null && data['passport_data'].isNotEmpty) {
         final rawData = data['passport_data'][0];
-        if (Validators.isValidId(rawData['passport_number'])) {
+        // if (Validators.isValidId(rawData['passport_number'])) {
           bool isExpired = rawData['passport_status'] == 'Expired';
           return PassportData.fromJson(
             rawData,
             serviceStatus.requestStatus,
             isExpired,
           );
-        }
+        // }
       }
       return null;
     } catch (e) {
@@ -241,7 +241,6 @@ class ApiService {
       final data = await _fetchData(ApiConstants.getNationalIdUrl(citizenId));
       if (data['national_id_data'] != null &&
           data['national_id_data'].isNotEmpty) {
-        print("The returned data is: $data");
         return data['national_id_data'][0]; // Return the raw profile data
       }
       return {}; // Return empty map if no profile found

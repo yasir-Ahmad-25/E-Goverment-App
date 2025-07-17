@@ -65,7 +65,8 @@ class _HomeScreenState extends State<HomeScreen> {
       final prefs = await SharedPreferences.getInstance();
       await prefs.clear();
 
-      await http.post(Uri.parse('http://192.168.100.10/egov_back/logout'));
+      // await http.post(Uri.parse('http://192.168.202.39/Som-Gov/logout'));
+      await http.post(Uri.parse(ApiConstants.getLogoutUrl()));
 
       if (!mounted) return;
 
@@ -99,7 +100,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
       // Fetch citizen data
       final response = await http.get(
-        // Uri.parse('http://192.168.100.10/egov_back/citizen/$citizenId'),
+        // Uri.parse('http:// 192.168.202.39/egov_back/citizen/$citizenId'),
         Uri.parse(ApiConstants.getCitizenData(citizenId)),
       );
 
@@ -144,7 +145,8 @@ class _HomeScreenState extends State<HomeScreen> {
     try {
       // Fetch services data
       final response = await http.get(
-        Uri.parse('http://192.168.100.10/egov_back/services/'),
+        // Uri.parse('http://192.168.202.39/Som-Gov/services/'),
+        Uri.parse(ApiConstants.getServices()),
       );
 
       if (response.statusCode == 200) {
@@ -176,11 +178,10 @@ class _HomeScreenState extends State<HomeScreen> {
         title: Text("Welcome , $_fullName 🔥", style: TextStyle(fontSize: 16)),
         actions: [
           IconButton(
-            icon: const Icon(Bootstrap.person_circle),
+            icon: const Icon(Bootstrap.arrow_clockwise),
             onPressed: () {
-              if (kDebugMode) {
-                print("Profile Icon Has Been Clicked");
-              }
+              _loadCitizenData();
+              _loadServices();
             },
           ),
         ],

@@ -37,6 +37,7 @@ class _MyAppState extends State<MyApp> {
     return MaterialApp(
       // darkTheme: ThemeData.dark(),
       color: Colors.white,
+      debugShowCheckedModeBanner: false,
       home: FutureBuilder(
         future: _checkLoginStatus(),
         builder: (context, snapshot) {

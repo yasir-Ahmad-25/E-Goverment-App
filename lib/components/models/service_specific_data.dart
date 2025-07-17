@@ -42,7 +42,7 @@ class NationalIdData {
       maritalStatus: json['martial_status'] ?? 'N/A',
       citizenImagePath: json['citizen_image'] ?? '',
       isExpired: isExpired,
-      requestStatus: requestStatus,
+      requestStatus: json['national_id_card_status'],
     );
   }
 }
@@ -88,7 +88,7 @@ class PassportData {
       expireAt: json['Expire_At'] ?? 'N/A',
       citizenImagePath: json['citizen_image'] ?? '',
       isExpired: isExpired,
-      requestStatus: requestStatus,
+      requestStatus: json['passport_status'],
     );
   }
 }

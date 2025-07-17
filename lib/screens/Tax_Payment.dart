@@ -89,7 +89,8 @@ class _TaxPaymentState extends State<TaxPayment> {
 
     try {
       var response = await http.get(
-        Uri.parse('http://192.168.100.10/Som-Gov/driver_tax/$citizenId'),
+        // Uri.parse('http://192.168.202.39/Som-Gov/driver_tax/$citizenId'),
+        Uri.parse(ApiConstants.fetch_driver_tax(citizenId!)),
       );
 
       if (response.statusCode == 200) {
@@ -156,7 +157,8 @@ class _TaxPaymentState extends State<TaxPayment> {
 
     try {
       var response = await http.get(
-        Uri.parse('http://192.168.100.10/Som-Gov/business_tax/$citizenId'),
+        // Uri.parse('http://192.168.202.39/Som-Gov/business_tax/$citizenId'),
+        Uri.parse(ApiConstants.fetch_businessTax(citizenId!)),
       );
 
       if (response.statusCode == 200) {
@@ -214,7 +216,8 @@ class _TaxPaymentState extends State<TaxPayment> {
   Future<void> _loadPaymentMethods() async {
     try {
       final response = await http.get(
-        Uri.parse('http://192.168.100.10/egov_back/payment_methods/'),
+        // Uri.parse('http://192.168.202.39/egov_back/payment_methods/'),
+        Uri.parse(ApiConstants.fetchPaymentMethods()),
       );
 
       if (response.statusCode == 200) {
@@ -254,7 +257,8 @@ class _TaxPaymentState extends State<TaxPayment> {
     final futureDate = DateTime(now.year, now.month + monthsToAdd, now.day);
     final String formattedDueDate = DateFormat('yyyy-MM-dd').format(futureDate);
 
-    final url = Uri.parse('http://192.168.100.10/Som-Gov/saveTaxPayment');
+    // final url = Uri.parse('http://192.168.202.39/Som-Gov/saveTaxPayment');
+    final url = Uri.parse(ApiConstants.saveTaxPayment());
     final body = {
       'citizen_id': citizenId.toString(),
       'category_id': widget.tax.categoryId.toString(),

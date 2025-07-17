@@ -21,6 +21,7 @@ class PassportSection extends StatelessWidget {
     // Handle loading state if data is null but expected based on an initial check
     // For this example, assuming data can be null if not yet fetched or doesn't exist.
 
+    print("the returned data is: $data");
     if (data == null || data!.requestStatus == "NEW") {
       return _buildRequestPassportUI(context);
     }
@@ -188,32 +189,135 @@ class PassportPagePlaceholder extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              "Passport Details (Placeholder)",
-              style: Theme.of(context).textTheme.headlineSmall,
-            ),
-            const SizedBox(height: 10),
-            Text("Number: $passportNumber"),
-            Text("Name: $fullname"),
-            Text("Expires: $expireDate"),
-            // Add more details and proper UI
-            const SizedBox(height: 10),
-            passportCitizenImagePath.isNotEmpty
-                ? Image.network(
-                  passportCitizenImagePath,
-                  height: 100,
-                  errorBuilder: (c, o, s) => Icon(Icons.image_not_supported),
-                )
-                : const Text("No image"),
-          ],
+    // return Card(
+    //   child: Padding(
+    //     padding: const EdgeInsets.all(16.0),
+    //     child: Column(
+    //       crossAxisAlignment: CrossAxisAlignment.start,
+    //       children: [
+    //         Text(
+    //           "Passport Details (Placeholder)",
+    //           style: Theme.of(context).textTheme.headlineSmall,
+    //         ),
+    //         const SizedBox(height: 10),
+    //         Text("Number: $passportNumber"),
+    //         Text("Name: $fullname"),
+    //         Text("Expires: $expireDate"),
+    //         // Add more details and proper UI
+    //         const SizedBox(height: 10),
+    //         passportCitizenImagePath.isNotEmpty
+    //             ? Image.network(
+    //               passportCitizenImagePath,
+    //               height: 100,
+    //               errorBuilder: (c, o, s) => Icon(Icons.image_not_supported),
+    //             )
+    //             : const Text("No image"),
+    //       ],
+    //     ),
+    //   ),
+    // );
+
+    return Container(
+      margin: EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.3),
+            spreadRadius: 3,
+            blurRadius: 10,
+            offset: Offset(0, 3),
+          ),
+        ],
+      ),
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          minHeight: MediaQuery.of(context).size.height * 0.8,
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              Center(
+                child: Text(
+                  'FEDERAL REPUBLIC OF SOMALIA',
+                  style: TextStyle(
+                    color: Colors.black,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              SizedBox(height: 30),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  // Dynamic Photo
+                  Container(
+                    width: 100,
+                    height: 120,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(4),
+                      image: DecorationImage(
+                        image: passportCitizenImagePath != null
+                            ? NetworkImage(passportCitizenImagePath)
+                            : AssetImage('assets/images/person.jpg') as ImageProvider,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                  ),
+                  // Passport image (could be static or dynamic)
+                  Container(
+                    width: 100,
+                    height: 120,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(4),
+                      image: DecorationImage(
+                        image: AssetImage('assets/images/somalia_passport.jpg'),
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: 30),
+              _buildDataRow('FULL NAME', fullname ?? ''),
+              Divider(),
+              // _buildDataRow('TYPE', type ?? ''),
+              // Divider(),
+              _buildDataRow('Gender', gender ?? ''),
+              Divider(),
+              // _buildDataRow('State', state ?? ''),
+              // Divider(),
+              // _buildDataRow('Birth Date', birthDate ?? ''),
+              // Divider(),
+              _buildDataRow('Passport NUMBER', passportNumber ?? ''),
+            ],
+          ),
         ),
       ),
     );
+
   }
 }
+
+Widget _buildDataRow(String value, String label) {
+  return Row(
+    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    children: [
+      Text(
+        value,
+        style: TextStyle(
+          color: Colors.black,
+          fontSize: 16,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+      Text(label, style: TextStyle(color: Colors.black, fontSize: 14)),
+    ],
+  );
+}
+
