@@ -3,6 +3,7 @@ import 'package:e_govermenet/components/Forms/business_certificate_form.dart';
 import 'package:e_govermenet/components/Forms/driver_license_form.dart';
 import 'package:e_govermenet/components/Forms/national_id_card_form.dart';
 import 'package:e_govermenet/components/Forms/passport_form.dart';
+import 'package:e_govermenet/screens/charge_page.dart';
 import 'package:e_govermenet/screens/help_center_screen.dart';
 import 'package:e_govermenet/screens/home_screen.dart';
 import 'package:e_govermenet/screens/login_screen.dart';

@@ -36,7 +36,7 @@ class ApiConstants {
 
   // fetch Document Types Except The Current Ordering One
   static String getDocumentTypesUrl() => '$baseUrl/documentTypes';
-  static String getDocumentTypes2() => '$baseUrl/documentTypes/1';
+  static String getDocumentTypes2() => '$baseUrl/documentTypes/2';
   static String getDocumentTypes4() => '$baseUrl/documentTypes/4';
 
   // For image base URL if not included in the image path from API

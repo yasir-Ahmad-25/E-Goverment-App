@@ -5,6 +5,7 @@ import 'package:e_govermenet/components/document_uploader.dart';
 import 'package:e_govermenet/components/input_fields.dart';
 import 'package:e_govermenet/components/national_id_uploader.dart';
 import 'package:e_govermenet/components/services/api_constants.dart';
+import 'package:e_govermenet/screens/charge_page.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:http/http.dart' as http;
@@ -56,6 +57,7 @@ class _DriverLicenseFormState extends State<DriverLicenseForm> {
   String TaxPaymentTime_based_on_car = "";
 
   List<String> _DocumentTypes = [];
+  List<Map<String, dynamic>> _paymentMethods = [];
 
   final List<String> _types = ["Employee", "Student", "Other"];
 
@@ -218,7 +220,7 @@ class _DriverLicenseFormState extends State<DriverLicenseForm> {
     }
   }
 
-  void _submitForm() async {
+  Future<void> _submitForm() async {
     final prefs = await SharedPreferences.getInstance();
     final citizenId = prefs.getInt('user_id');
 
@@ -341,6 +343,38 @@ class _DriverLicenseFormState extends State<DriverLicenseForm> {
     }
   }
 
+  Future<void> _loadPaymentMethods() async {
+    try {
+      final response = await http.get(
+        // Uri.parse('http://192.168.202.39/egov_back/payment_methods/'),
+        Uri.parse(ApiConstants.fetchPaymentMethods()),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        print("payment methods are: $data");
+        if (data['status'] == 'success') {
+          setState(() {
+            _paymentMethods = List<Map<String, dynamic>>.from(
+              data['payment_methods'],
+            );
+          });
+        } else {
+          throw Exception(data['message']);
+        }
+      } else {
+        throw Exception(
+          "Failed To Fetch Payment Methods: ${response.statusCode}",
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Error: ${e.toString()}")));
+    }
+  }
+
+
   void _showError(String message) {
     ScaffoldMessenger.of(
       context,
@@ -354,6 +388,7 @@ class _DriverLicenseFormState extends State<DriverLicenseForm> {
     _loadDocumentTypes();
     _loadCitizenData();
     _loadCarTypes();
+    _loadPaymentMethods();
   }
 
   @override
@@ -528,7 +563,23 @@ class _DriverLicenseFormState extends State<DriverLicenseForm> {
               child: SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: _submitForm,
+                  // onPressed: _submitForm,
+                  onPressed: () {
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                        builder: (_) => ChargePage(
+                      imageAsset: 'assets/images/payment_fee.png',
+                      instructions: [
+                        Text('You will be charged \$15 for your Driver License request.',
+                            style: TextStyle(fontSize: 16)),
+                        // Add more instructions as needed
+                      ],
+                      amount: 15,
+                      onPaymentSuccess: _submitForm,
+                      paymentMethods: _paymentMethods,
+                    )));
+                  },
                   style: ElevatedButton.styleFrom(
                     backgroundColor:
                         Colors.blue, // Background color (primary blue)

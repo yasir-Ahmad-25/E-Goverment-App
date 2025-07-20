@@ -144,7 +144,9 @@ class _TaxPaymentState extends State<TaxPayment> {
       } else {
         throw Exception("Failed to load Driver License data.");
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
+      print('❌ Error: $e');
+      print('StackTrace: $stackTrace');
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text("Error: ${e.toString()}")));
@@ -333,7 +335,8 @@ class _TaxPaymentState extends State<TaxPayment> {
     }
   }
 
-  Future<void> saveHouseTax(BuildContext context) async {
+  void saveHouseTax(BuildContext context) async {
+    print("button clicked");
     final prefs = await SharedPreferences.getInstance();
     final citizenId = prefs.getInt('user_id');
 
@@ -625,23 +628,53 @@ class _TaxPaymentState extends State<TaxPayment> {
                                 SizedBox(height: 25),
 
                                 Center(
-                                  child: ElevatedButton.icon(
-                                    icon: Icon(Icons.payment, color: Colors.white),
-                                    label: Text(
-                                      "Submit Tax Payment",
-                                      style: TextStyle(color: Colors.white),
-                                    ),
-                                    onPressed: () async {
-                                      if (_formKey.currentState!.validate())  {
-                                        await saveBusinessTax(context);
-                                      }
-                                    },
-                                    style: ElevatedButton.styleFrom(
-                                      padding: EdgeInsets.symmetric(
-                                        horizontal: 24,
-                                        vertical: 12,
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: SizedBox(
+                                      width: double.infinity,
+                                      child: ElevatedButton(
+                                        onPressed: () {
+                                          showModalBottomSheet(
+                                            context: context,
+                                            isScrollControlled: true,
+                                            backgroundColor: Colors.transparent,
+                                            builder:
+                                                (context) => Container(
+                                              padding: EdgeInsets.only(
+                                                bottom: MediaQuery.of(context).viewInsets.bottom,
+                                              ),
+                                              decoration: BoxDecoration(
+                                                color: Colors.white,
+                                                borderRadius: BorderRadius.vertical(
+                                                  top: Radius.circular(
+                                                    8,
+                                                  ), // Set your preferred radius here
+                                                ),
+                                              ),
+                                              child: PaymentOptionsBottomSheet(
+                                                paymentMethods: _paymentMethods,
+                                                callbackMethod: () => saveHouseTax(context),
+                                              ),
+                                            ),
+                                          );
+                                        },
+
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor:
+                                          Colors.redAccent, // Background color (primary blue)
+                                          foregroundColor: Colors.white, // Text color
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(8), // 8px border radius
+                                          ),
+                                          padding: EdgeInsets.symmetric(
+                                            vertical: 16,
+                                          ), // Optional: Adjust padding
+                                        ),
+                                        child: Text(
+                                          "PAY TAX",
+                                          style: TextStyle(fontSize: 16), // Optional: Adjust text size
+                                        ),
                                       ),
-                                      backgroundColor: Colors.blue.shade700,
                                     ),
                                   ),
                                 ),
@@ -887,28 +920,52 @@ class _TaxPaymentState extends State<TaxPayment> {
                         SizedBox(height: 25),
 
                         Center(
-                          child: ElevatedButton.icon(
-                            icon: Icon(Icons.payment, color: Colors.white),
-                            label: Text(
-                              "Submit House Tax",
-                              style: TextStyle(color: Colors.white),
-                            ),
-                            onPressed: () async {
-                              if (_HouseformKey.currentState!.validate()) {
-                                await saveHouseTax(context);
-                                // ScaffoldMessenger.of(context).showSnackBar(
-                                //   SnackBar(
-                                //     content: Text("House Tax Submitted"),
-                                //   ),
-                                // );
-                                // Send houseNumberController.text and taxAmount to backend
-                              }
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.deepOrange,
-                              padding: EdgeInsets.symmetric(
-                                horizontal: 28,
-                                vertical: 12,
+                          child: Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: SizedBox(
+                              width: double.infinity,
+                              child: ElevatedButton(
+                                onPressed: () {
+                                  showModalBottomSheet(
+                                    context: context,
+                                    isScrollControlled: true,
+                                    backgroundColor: Colors.transparent,
+                                    builder:
+                                        (context) => Container(
+                                      padding: EdgeInsets.only(
+                                        bottom: MediaQuery.of(context).viewInsets.bottom,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: Colors.white,
+                                        borderRadius: BorderRadius.vertical(
+                                          top: Radius.circular(
+                                            8,
+                                          ), // Set your preferred radius here
+                                        ),
+                                      ),
+                                      child: PaymentOptionsBottomSheet(
+                                        paymentMethods: _paymentMethods,
+                                        callbackMethod: () => saveHouseTax(context),
+                                      ),
+                                    ),
+                                  );
+                                },
+
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor:
+                                  Colors.redAccent, // Background color (primary blue)
+                                  foregroundColor: Colors.white, // Text color
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8), // 8px border radius
+                                  ),
+                                  padding: EdgeInsets.symmetric(
+                                    vertical: 16,
+                                  ), // Optional: Adjust padding
+                                ),
+                                child: Text(
+                                  "PAY TAX",
+                                  style: TextStyle(fontSize: 16), // Optional: Adjust text size
+                                ),
                               ),
                             ),
                           ),

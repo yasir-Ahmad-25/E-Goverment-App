@@ -7,6 +7,7 @@ import 'package:e_govermenet/components/gender_dropdown.dart';
 import 'package:e_govermenet/components/input_fields.dart';
 import 'package:e_govermenet/components/national_id_uploader.dart';
 import 'package:e_govermenet/components/services/api_constants.dart';
+import 'package:e_govermenet/screens/charge_page.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -33,6 +34,8 @@ class _NationalIdCardFormState extends State<NationalIdCardForm> {
   File? _document;
 
   DateTime? _dob;
+
+  List<Map<String, dynamic>> _paymentMethods = [];
 
   bool showOtherField = false;
 
@@ -163,7 +166,7 @@ class _NationalIdCardFormState extends State<NationalIdCardForm> {
     }
   }
 
-  void _submitForm() async {
+  Future<void> _submitForm() async {
     final prefs = await SharedPreferences.getInstance();
     final citizenId = prefs.getInt('user_id');
 
@@ -269,6 +272,36 @@ class _NationalIdCardFormState extends State<NationalIdCardForm> {
     }
   }
 
+  Future<void> _loadPaymentMethods() async {
+    try {
+      final response = await http.get(
+        // Uri.parse('http://192.168.202.39/egov_back/payment_methods/'),
+        Uri.parse(ApiConstants.fetchPaymentMethods()),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['status'] == 'success') {
+          setState(() {
+            _paymentMethods = List<Map<String, dynamic>>.from(
+              data['payment_methods'],
+            );
+          });
+        } else {
+          throw Exception(data['message']);
+        }
+      } else {
+        throw Exception(
+          "Failed To Fetch Payment Methods: ${response.statusCode}",
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Error: ${e.toString()}")));
+    }
+  }
+
   void _showError(String message) {
     ScaffoldMessenger.of(
       context,
@@ -281,6 +314,7 @@ class _NationalIdCardFormState extends State<NationalIdCardForm> {
     _loadStates();
     _loadDocumentTypes();
     _loadCitizenData();
+    _loadPaymentMethods();
   }
 
   @override
@@ -475,7 +509,23 @@ class _NationalIdCardFormState extends State<NationalIdCardForm> {
             child: SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: _submitForm,
+                // onPressed: _submitForm,
+                onPressed: () {
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                      builder: (_) => ChargePage(
+                    imageAsset: 'assets/images/payment_fee.png',
+                    instructions: [
+                      Text('You will be charged \$5 for your National Id Card Request.',
+                          style: TextStyle(fontSize: 16)),
+                      // Add more instructions as needed
+                    ],
+                    amount: 5,
+                    onPaymentSuccess: _submitForm,
+                    paymentMethods: _paymentMethods,
+                  )));
+                },
                 style: ElevatedButton.styleFrom(
                   backgroundColor:
                       Colors.blue, // Background color (primary blue)

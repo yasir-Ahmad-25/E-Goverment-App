@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'package:e_govermenet/components/banner_card.dart';
 import 'package:e_govermenet/components/services/api_constants.dart';
 import 'package:e_govermenet/screens/service_detailed_page.dart';
+import 'package:e_govermenet/screens/service_sectioned_list.dart';
+import 'package:e_govermenet/service_info.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -79,6 +81,54 @@ class _HomeScreenState extends State<HomeScreen> {
       ).showSnackBar(SnackBar(content: Text('Error: ${e.toString()}')));
     }
   }
+
+  final Map<String, List<ServiceInfo>> serviceSections = {
+    'NIRA': [
+      ServiceInfo(
+        serId: 1,
+        title: 'National Id Card',
+        description: 'Apply for your National ID card.',
+        assetImagePath: 'assets/images/nira_Logo.png',
+      ),
+    ],
+    'Government': [
+      ServiceInfo(
+        serId: 2,
+        title: 'Passport',
+        description: 'Get your passport.',
+        assetImagePath: 'assets/images/passport.jpg',
+      ),
+      ServiceInfo(
+        serId: 5,
+        title: 'Driver License',
+        description: 'Apply for or renew your driver license.',
+        assetImagePath: 'assets/images/driver_License.jpg',
+      ),
+      ServiceInfo(
+        serId: 4,
+        title: 'Business Registration',
+        description: 'Register your business legally.',
+        assetImagePath: 'assets/images/business.jpg',
+      ),
+    ],
+    'Gobolka': [
+      ServiceInfo(
+        serId: 3,
+        title: 'Birth Certificate',
+        description: 'Request a certified birth certificate.',
+        assetImagePath: 'assets/images/birth_certificate.jpg',
+      ),
+    ],
+    // 'Educational Ministry': [
+    //   ServiceInfo(
+    //     serId: 6,
+    //     title: 'Education Certificate',
+    //     description: 'Get your education certificate.',
+    //     assetImagePath: 'assets/images/nira_Logo.png',
+    //   ),
+    // ],
+  };
+
 
   @override
   void initState() {
@@ -261,22 +311,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               )
               // : _isActive
-              : HomeContent(service: _services),
-
-      // : PendingUser(gender: _gender.toString(), function: _logout),
-      // floatingActionButton: FloatingActionButton(
-      //   shape: RoundedRectangleBorder(
-      //     borderRadius: BorderRadius.circular(100.0),
-      //   ),
-      //   backgroundColor: Colors.white,
-      //   elevation: 4, // visible shadow
-      //   onPressed: () {
-      //     Navigator.pushNamed(context, 'taxes');
-      //   },
-      //   child: const Icon(Icons.attach_money_rounded, color: Colors.blue),
-      // ),
-      // floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-
+              : HomeContent(service: _services,serviceSections: serviceSections,),
       bottomNavigationBar: BottomBar(
         selectedIndex: _selectedIndex,
         method: _onNavBarItemTapped,
@@ -287,23 +322,39 @@ class _HomeScreenState extends State<HomeScreen> {
 
 class HomeContent extends StatelessWidget {
   final List<GovService> service;
-  const HomeContent({super.key, required this.service});
-
+  final Map<String, List<ServiceInfo>> serviceSections;
+  const HomeContent({super.key, required this.service, required this.serviceSections});
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        BannerCard(),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12.0),
-          child: Text(
-            "Services",
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          BannerCard(),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12.0),
+            child: Text(
+              "Services",
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
           ),
-        ),
-        Services(services: service),
-      ],
+      
+          // Services(services: service),
+
+      
+          ServiceSectionedList(
+            serviceSections: serviceSections,
+            onServiceTap: (service) {
+              // Navigate to details or handle tap
+              // Example:
+              Navigator.push(context, MaterialPageRoute(
+                builder: (_) => ServiceDetailPage(service: service),
+              ));
+            },
+          ),
+        ],
+      ),
     );
   }
 }
@@ -396,72 +447,72 @@ class PendingUser extends StatelessWidget {
   }
 }
 
-class Services extends StatelessWidget {
-  final List<GovService> services;
-  const Services({super.key, required this.services});
+// class Services extends StatelessWidget {
+//   final List<GovService> services;
+//   const Services({super.key, required this.services});
+//
+//   @override
+//   Widget build(BuildContext context) {
+//     return Expanded(
+//       child: Padding(
+//         padding: const EdgeInsets.all(8.0),
+//         child: GridView.builder(
+//           itemCount: services.length,
+//           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+//             crossAxisCount: 3,
+//             mainAxisSpacing: 10,
+//             crossAxisSpacing: 10,
+//           ),
+//           itemBuilder: (context, index) {
+//             return ServiceIcon(service: services[index]);
+//           },
+//         ),
+//       ),
+//     );
+//   }
+// }
 
-  @override
-  Widget build(BuildContext context) {
-    return Expanded(
-      child: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: GridView.builder(
-          itemCount: services.length,
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 3,
-            mainAxisSpacing: 10,
-            crossAxisSpacing: 10,
-          ),
-          itemBuilder: (context, index) {
-            return ServiceIcon(service: services[index]);
-          },
-        ),
-      ),
-    );
-  }
-}
-
-class ServiceIcon extends StatelessWidget {
-  final GovService service;
-
-  const ServiceIcon({super.key, required this.service});
-
-  @override
-  Widget build(BuildContext context) {
-    final iconData = getBootstrapIcon(service.serviceIcon);
-    final color = hexToColor(service.colorHex);
-
-    return GestureDetector(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => ServiceDetailPage(service: service),
-          ),
-        );
-      },
-      child: Column(
-        children: [
-          Container(
-            width: 50,
-            height: 50,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(50),
-              color: color,
-            ),
-            child: Icon(iconData, color: Colors.white),
-          ),
-          SizedBox(height: 5),
-          Text(
-            service.name,
-            textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 13),
-          ),
-        ],
-      ),
-    );
-  }
-}
+// class ServiceIcon extends StatelessWidget {
+//   final GovService service;
+//
+//   const ServiceIcon({super.key, required this.service});
+//
+//   @override
+//   Widget build(BuildContext context) {
+//     final iconData = getBootstrapIcon(service.serviceIcon);
+//     final color = hexToColor(service.colorHex);
+//
+//     return GestureDetector(
+//       onTap: () {
+//         Navigator.push(
+//           context,
+//           MaterialPageRoute(
+//             builder: (_) => ServiceDetailPage(service: service),
+//           ),
+//         );
+//       },
+//       child: Column(
+//         children: [
+//           Container(
+//             width: 50,
+//             height: 50,
+//             decoration: BoxDecoration(
+//               borderRadius: BorderRadius.circular(50),
+//               color: color,
+//             ),
+//             child: Icon(iconData, color: Colors.white),
+//           ),
+//           SizedBox(height: 5),
+//           Text(
+//             service.name,
+//             textAlign: TextAlign.center,
+//             style: TextStyle(fontSize: 13),
+//           ),
+//         ],
+//       ),
+//     );
+//   }
+// }
 
 // NAVIGATION BAR
 
@@ -669,4 +720,84 @@ Color hexToColor(String hex) {
   hex = hex.replaceAll('#', '');
   if (hex.length == 6) hex = 'FF$hex'; // add full opacity if missing
   return Color(int.parse(hex, radix: 16));
+}
+
+
+
+// ============================== added recently ==================
+
+class ServiceCategoryCard extends StatelessWidget {
+  final String title;
+  final String description;
+  final String imageUrl; // Can be a network image or asset image
+  final VoidCallback? onTap;
+
+  const ServiceCategoryCard({
+    Key? key,
+    required this.title,
+    required this.description,
+    required this.imageUrl,
+    this.onTap,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Card(
+        elevation: 4,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        margin: EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+        child: Container(
+          padding: EdgeInsets.all(18),
+          child: Row(
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: Image.asset(
+                  imageUrl,
+                  width: 48,
+                  height: 48,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) =>
+                      Container(
+                        width: 48,
+                        height: 48,
+                        color: Colors.grey[200],
+                        child: Icon(Icons.image_not_supported, color: Colors.grey),
+                      ),
+                ),
+              ),
+              SizedBox(width: 18),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 18,
+                      ),
+                    ),
+                    SizedBox(height: 6),
+                    Text(
+                      description,
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey[700],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(Icons.arrow_forward_ios_rounded, size: 18, color: Colors.grey[400]),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }

@@ -80,7 +80,6 @@ class DriverLicenseDetailsTax extends StatelessWidget {
           child: SizedBox(
             width: double.infinity,
             child: ElevatedButton(
-              // onPressed: _submitForm,
               onPressed: () {
                 showModalBottomSheet(
                   context: context,

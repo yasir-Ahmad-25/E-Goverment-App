@@ -8,6 +8,7 @@ import 'package:e_govermenet/components/national_id/national_id_section.dart';
 import 'package:e_govermenet/components/passport/passport_section.dart';
 import 'package:e_govermenet/components/services/api_service.dart';
 import 'package:e_govermenet/screens/home_screen.dart';
+import 'package:e_govermenet/service_info.dart';
 import 'package:flutter/material.dart';
 
 class PlaceholderSection extends StatelessWidget {
@@ -29,7 +30,7 @@ class PlaceholderSection extends StatelessWidget {
 }
 
 class ServiceDetailPage extends StatefulWidget {
-  final GovService service;
+  final ServiceInfo service;
 
   const ServiceDetailPage({super.key, required this.service});
 
@@ -167,7 +168,7 @@ class _ServiceDetailPageState extends State<ServiceDetailPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(widget.service.name), centerTitle: true),
+      appBar: AppBar(title: Text(widget.service.title), centerTitle: true),
       body: FutureBuilder<Map<String, dynamic>>(
         future: _loadDataFuture,
         builder: (context, snapshot) {
