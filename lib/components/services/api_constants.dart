@@ -60,6 +60,7 @@ class ApiConstants {
 
 
   static String saveTaxPayment() => '$baseUrl/saveTaxPayment';
+  static String saveBusinessTaxPayment() => '$baseUrl/saveBusinessTaxPayment';
   static String saveHouseTaxPayment() => '$baseUrl/saveHouseTaxPayment';
 
 
