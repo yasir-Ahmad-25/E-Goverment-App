@@ -91,19 +91,24 @@ class _HomeScreenState extends State<HomeScreen> {
         assetImagePath: 'assets/images/nira_Logo.png',
       ),
     ],
-    'Government': [
+    'Ministry Of Interior': [
       ServiceInfo(
         serId: 2,
         title: 'Passport',
         description: 'Get your passport.',
         assetImagePath: 'assets/images/passport.jpg',
       ),
+
+  ],
+    'Ministry Of Transport': [
       ServiceInfo(
         serId: 5,
         title: 'Driver License',
         description: 'Apply for or renew your driver license.',
         assetImagePath: 'assets/images/driver_License.jpg',
       ),
+  ],
+    'Ministry Of Commerce ': [
       ServiceInfo(
         serId: 4,
         title: 'Business Registration',
@@ -111,7 +116,7 @@ class _HomeScreenState extends State<HomeScreen> {
         assetImagePath: 'assets/images/business.jpg',
       ),
     ],
-    'Gobolka': [
+    'Gobolka Banadir': [
       ServiceInfo(
         serId: 3,
         title: 'Birth Certificate',

@@ -23,7 +23,7 @@ class NationalIdSection extends StatelessWidget {
           padding: const EdgeInsets.symmetric(vertical: 50.0),
           child: RequestCard(
             // Replace with your actual RequestCard
-            card_title: 'Request National ID Card 2025',
+            card_title: 'Request National ID Card',
             card_text: 'Muwaadin Hada Dalbo National Id Card.',
             showRequestButton: true,
           ),

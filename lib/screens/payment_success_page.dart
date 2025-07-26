@@ -65,7 +65,8 @@ class PaymentSuccessPage extends StatelessWidget {
                         borderRadius: BorderRadius.circular(8),
                       ),
                     ),
-                    onPressed: onButtonPressed ?? () => Navigator.pop(context),
+                    // onPressed: onButtonPressed ?? () => Navigator.pop(context),
+                    onPressed: onButtonPressed ?? () => Navigator.pushReplacementNamed(context,'home_screen'),
                     child: Text(
                       buttonText,
                       style: TextStyle(

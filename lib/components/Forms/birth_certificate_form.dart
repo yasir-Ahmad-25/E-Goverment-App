@@ -463,6 +463,7 @@ class _BirthCertificateFormState extends State<BirthCertificateForm> {
                         Colors.blue, // Background color (primary blue)
                     foregroundColor: Colors.white, // Text color
                     shape: RoundedRectangleBorder(
+
                       borderRadius: BorderRadius.circular(
                         8,
                       ), // 8px border radius

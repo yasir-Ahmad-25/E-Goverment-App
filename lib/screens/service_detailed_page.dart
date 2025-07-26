@@ -222,6 +222,7 @@ class _ServiceDetailPageState extends State<ServiceDetailPage> {
               // serviceContent = PlaceholderSection(title: "Birth Certificate"); // Replace with actual
               break;
             case 4:
+
               serviceContent = BusinessCertificateSection(
                 data:
                     data['businessCertificateData'] as BusinessCertificateData?,

@@ -350,7 +350,7 @@ class _TaxPaymentState extends State<TaxPayment> {
     final futureDate = DateTime(now.year, now.month + monthsToAdd, now.day);
     final String formattedDueDate = DateFormat('yyyy-MM-dd').format(futureDate);
 
-    final url = Uri.parse(ApiConstants.saveTaxPayment());
+    final url = Uri.parse(ApiConstants.saveHouseTaxPayment());
     final body = {
       'citizen_id': citizenId.toString(),
       'category_id': '100',

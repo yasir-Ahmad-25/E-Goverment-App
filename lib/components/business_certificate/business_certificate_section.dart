@@ -22,7 +22,7 @@ class BusinessCertificateSection extends StatelessWidget {
       return _buildRequestUI(context);
     }
 
-    if (data!.requestStatus == "requested" ||
+    if (data!.requestStatus == "Requested" ||
         data!.requestStatus == "Pending") {
       return CertificateWaitingWidget(certificateType: "Business Registration");
     }
