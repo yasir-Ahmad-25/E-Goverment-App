@@ -1,7 +1,7 @@
 // lib/services/api_constants.dart
 class ApiConstants {
   //static const String baseUrl = 'http:// 10.203.28.39/Som-Gov';
-  static const String baseUrl = 'http://192.168.100.10/Som-Gov';
+  static const String baseUrl = 'http:// 172.20.10.2:8080/Som-Gov';
   // static const String baseUrl = 'http://192.168.202.39/Som-Gov';
   static const String nationalIdEndpoint = '/national_id';
   static const String passportEndpoint = '/passport_id';
