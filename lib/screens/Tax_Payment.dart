@@ -307,7 +307,7 @@ class _TaxPaymentState extends State<TaxPayment> {
     final nextYearDate = DateTime(now.year + 1, now.month, now.day);
     final formattedDueDate = DateFormat('yyyy-MM-dd').format(nextYearDate);
 
-    final url = Uri.parse(ApiConstants.saveTaxPayment());
+    final url = Uri.parse(ApiConstants.saveBusinessTaxPayment());
     final body = {
       'citizen_id': citizenId.toString(),
       'category_id': '3',
@@ -653,7 +653,7 @@ class _TaxPaymentState extends State<TaxPayment> {
                                               ),
                                               child: PaymentOptionsBottomSheet(
                                                 paymentMethods: _paymentMethods,
-                                                callbackMethod: () => saveHouseTax(context),
+                                                callbackMethod: () => saveBusinessTax(context),
                                               ),
                                             ),
                                           );
